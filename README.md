@@ -1,78 +1,73 @@
-# TUGAS KELOMPOK PROYEK AKHIR SEMESTER PBP 
+# NYARAP AT DEPOK MOBILE
 
-Kelompok B08:
+### Kelompok B08:
+- Alisha Aline Athiyyah - 2306207921
+- Dhafin Putra Nugraha - 2306221112
+- Maira Shasmeen Mazaya - 2306245724
+- Naila Syarifa Yosarvi - 2306245882
+- Valiza Nadya Jatikansha - 2306240156
 
-Alisha Aline Athiyyah - 2306207921
-Dhafin Putra Nugraha - 2306221112
-Maira Shasmeen Mazaya - 2306245724
-Naila Syarifa Yosarvi - 2306245882
-Valiza Nadya Jatikansha - 2306240156
+### Visi:
+Mempermudah warga Depok dalam menemukan tempat sarapan yang cepat, enak, dan sesuai selera.
 
-Nyarap - Nyari Sarapan at Depok 🍳
+### Misi:
+- Memberikan rekomendasi tempat sarapan berdasarkan preferensi pengguna.
+- Menyediakan platform untuk pengguna menulis ulasan dan memberikan rating tempat sarapan.
 
-**Visi:**  
-Mempermudah warga Depok dalam menemukan sarapan yang cepat, enak, dan sesuai selera.
+### Masalah yang Ingin Ditangani:
+Aplikasi ini dirancang untuk membantu mengatasi kebingungan warga Depok dalam mencari sarapan, terutama bagi mereka yang baru pindah atau memiliki waktu terbatas. Aplikasi ini menyediakan informasi mengenai tempat sarapan yang sesuai dengan preferensi pengguna.
 
-**Misi:**  
-1. Memberikan rekomendasi tempat sarapan berdasarkan preferensi pengguna.
-2. Menyediakan platform untuk pengguna menulis ulasan dan memberikan rating tempat sarapan.
-
-**Masalah yang Ingin Ditangani:**  
-Aplikasi ini menyelesaikan masalah kebingungan warga Depok, terutama bagi mereka yang baru atau tidak punya banyak waktu untuk mencari sarapan. Dengan aplikasi ini, pengguna dapat dengan cepat menemukan sarapan yang enak dan sesuai preferensi mereka.
-
-**Siapa yang Terbantu:**  
+### Siapa yang Terbantu:
 - Mahasiswa baru atau orang-orang yang baru pindah ke Depok.
 - Pekerja kantoran yang membutuhkan sarapan cepat sebelum memulai hari.
-- Warga lokal yang suka mencoba berbagai jenis sarapan dan ingin berbagi ulasan.
+- Warga lokal yang gemar mencoba berbagai jenis sarapan dan ingin berbagi ulasan.
 
-**Bagaimana Cara Membantu:**  
+### Bagaimana Cara Membantu:
 Aplikasi ini memberikan pilihan tempat sarapan yang beragam melalui fitur pencarian, rekomendasi, ulasan, forum aktivitas, dan rating. Pengguna dapat menyimpan tempat favorit mereka dalam wishlist sehingga dapat merencanakan sarapan berikutnya.
 
 ---
 
-## Fitur Utama
+## Fitur Utama:
 
-### Landing Page:
-- Login & Sign Up
-- Welcoming
-- Description
-- Modul: Rekomendasi Nyarap, Nyarap Detailer 
+### 1. Landing Page:
+- **Login & Sign Up**
+- **Welcoming**
+- **Deskripsi**
+- **Modul:** Rekomendasi Nyarap, Nyarap Detailer
 
-### Home Page:
-- Welcoming
-- Description
-- Modul: Rekomendasi Nyarap, Nyarap Activity, Nyarap Detailer, Nyarap Nanti, Nyarap Ulasan
+### 2. Home Page:
+- **Welcoming**
+- **Deskripsi**
+- **Modul:** Rekomendasi Nyarap, Nyarap Activity, Nyarap Detailer, Nyarap Favorit, Nyarap Ulasan
+- **FAQ**
+
+---
 
 ## Modul
-1. **Rekomendasi Nyarap 🍽️** // Explore
-   Pada modul **Rekomendasi Nyarap**, pengguna dapat memperoleh rekomendasi sarapan yang sesuai dengan preferensi mereka. Pengguna cukup mengisi form yang mencakup jenis makanan dan lokasi. Setiap hasil pencarian akan menampilkan informasi terkait tempat sarapan yang sesuai dengan preferensi mereka secara efisien. Berdasarkan input tersebut, aplikasi akan menampilkan rekomendasi tempat sarapan yang paling cocok, membantu pengguna yang masih bingung menentukan pilihan.
 
-2. **Nyarap Finder 📍** // Discover 
-   Pada modul **Nyarap Finder**, pengguna dapat menelusuri tempat sarapan berdasarkan lima kategori utama: nasi, mie, roti, lontong, dan bubur. Setelah memilih salah satu kategori, pengguna dapat menggunakan filter tambahan seperti harga, rating, atau lokasi. Aplikasi akan menampilkan rekomendasi tempat sarapan yang paling cocok, membantu pengguna yang masih bingung menentukan pilihan.
+### 1. Rekomendasi Nyarap 🍽️ (Discover)
+Pada modul ini, pengguna dapat mengisi form untuk mendapatkan rekomendasi tempat sarapan yang sesuai dengan preferensi makanan dan lokasi mereka. Untuk pengembangan tambahan, fitur penyimpanan form preferensi pengguna dapat ditambahkan ke dalam "History," sehingga pengguna dapat melihat kembali preferensi sebelumnya, serta mengedit atau menghapus data yang tersimpan.
 
-3. **Nyarap Detailer 🍲** // Details 
-   Pada modul **Nyarap Detailer**, pengguna dapat melihat informasi lengkap terkait tempat sarapan, termasuk menu, jam operasional, alamat, foto, ulasan pengguna, komentar pengguna, dan rating. Pengguna juga dapat menambahkan informasi tambahan pada setiap produk di tempat sarapan. 
+### 2. Nyarap Activity 🧑🏼‍💻 (Community)
+Pengguna dapat memposting aktivitas dan status terkait sarapan mereka di berbagai tempat. Mereka dapat membagikan informasi tentang tempat sarapan yang dikunjungi, menyertakan foto makanan, serta lokasi yang dapat diakses secara publik.
 
-4. **Nyarap Nanti ❤️** // Wishlist
-   Pada modul **Nyarap Nanti**, pengguna dapat menyimpan tempat sarapan favorit ke dalam wishlist pribadi. Selain itu, pengguna juga dapat mengelompokkan tempat sarapan favorit ke dalam fitur Collection, yang memudahkan pengaturan dan pencarian tempat sarapan berdasarkan kategori yang telah dibuat.
+### 3. Nyarap Detailer 🍲 (Details)
+Pengguna dapat melihat informasi lengkap terkait tempat sarapan, termasuk menu, jam operasional, alamat, foto, ulasan, komentar pengguna, dan rating. Pengguna juga dapat menambahkan informasi tambahan pada setiap produk di tempat sarapan.
 
-5. **Nyarap Ulasan 📝** // Reviews
-   Pada modul **Nyarap Ulasan**, pengguna dapat memberikan ulasan dan rating terhadap tempat sarapan yang telah mereka kunjungi. Ulasan yang diberikan akan membantu pengguna lain dalam memilih tempat sarapan terbaik berdasarkan pengalaman pengguna sebelumnya.
+### 4. Nyarap Nanti ❤️ (Wishlist)
+Pengguna dapat menyimpan tempat sarapan favorit ke dalam wishlist pribadi dan mengelompokkan tempat favorit ke dalam fitur Collection, yang memudahkan pengaturan dan pencarian tempat sarapan berdasarkan kategori yang telah dibuat.
 
-—
-##Role 
+### 5. Nyarap Ulasan 📝 (Reviews)
+Pengguna dapat memberikan ulasan dan rating terkait tempat sarapan yang telah dikunjungi. Ulasan ini membantu pengguna lain dalam memilih tempat sarapan terbaik.
 
-### **Reguler User** ☝️
-Pengguna reguler hanya memiliki akses pada fitur **Nyarap Pas**, **Nyarap Finder**, dan **Nyarap Detailer**. Pengguna reguler tidak dapat menyimpan tempat ke dalam wishlist atau memberikan ulasan pada tempat sarapan yang dikunjungi.
+---
 
-### **Registered User** 👥
-Pengguna **Registered User** memiliki akses lebih lengkap dibandingkan **Reguler User**. Selain fitur yang dimiliki Reguler User, **Registered User** juga dapat mengakses **Nyarap Favorit** untuk menyimpan tempat sarapan ke dalam wishlist serta merencanakan kunjungan. Mereka juga memiliki akses ke **Nyarap Ulasan**, yang memungkinkan mereka menulis ulasan dan memberikan rating pada tempat sarapan yang sudah dikunjungi.
+## Role Pengguna:
 
-## Pembagian Tugas:
-- **Nyarap Pas**: Naya
-- **Sarap Locator**: Naila
-- **Sarap Detailer**: Dhafin
-- **Sarap Favorit**: Aline
-- **Nyarap Ulasan**: Shasi
+### Regular User ☝️ (Guest)
+- Akses ke fitur Rekomendasi Nyarap, Nyarap Detailer, dan Nyarap Activity.
+- Tidak dapat menyimpan tempat dalam wishlist atau memberikan ulasan serta memposting aktivitas.
 
-
+### Registered User 👥
+- Akses penuh ke semua fitur, termasuk Nyarap Nanti untuk menyimpan tempat sarapan dan merencanakan kunjungan.
+- Dapat memberikan rating dan ulasan, serta menggunakan fitur Nyarap Activity untuk memposting aktivitas sarapan, berbagi foto, dan lokasi.
