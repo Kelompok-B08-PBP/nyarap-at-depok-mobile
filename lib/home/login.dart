@@ -1,5 +1,5 @@
-import 'package:nyarap_at_depok_mobile/home/home_page.dart';
 import 'package:flutter/material.dart';
+import 'package:nyarap_at_depok_mobile/home/home_page.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:nyarap_at_depok_mobile/home/register.dart';
@@ -98,12 +98,8 @@ class _LoginPageState extends State<LoginPage> {
                       String username = _usernameController.text;
                       String password = _passwordController.text;
 
-                      // Cek kredensial
-                      // TODO: Ganti URL dan jangan lupa tambahkan trailing slash (/) di akhir URL!
-                      // Untuk menyambungkan Android emulator dengan Django pada localhost,
-                      // gunakan URL http://10.0.2.2/
                       final response = await request
-                          .login("http://[APP_URL_KAMU]/auth/login/", {
+                          .login("http://localhost:8000/auth/login/", {
                         'username': username,
                         'password': password,
                       });
@@ -147,7 +143,7 @@ class _LoginPageState extends State<LoginPage> {
                     },
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
-                      minimumSize: Size(double.infinity, 50),
+                      minimumSize: const Size(double.infinity, 50),
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                     ),
