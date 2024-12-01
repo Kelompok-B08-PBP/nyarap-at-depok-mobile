@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nyarap_at_depok_mobile/home/login.dart';
+import 'package:nyarap_at_depok_mobile/home/register.dart';
 
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
@@ -111,7 +113,10 @@ class LeftDrawer extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      // Handle login
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const LoginPage()),
+                      );
                     },
                     child: const Text(
                       'Login',
@@ -132,7 +137,10 @@ class LeftDrawer extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      // Handle register
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const RegisterPage()),
+                      );
                     },
                     child: const Text(
                       'Register',
