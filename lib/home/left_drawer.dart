@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nyarap_at_depok_mobile/home/login.dart';
 import 'package:nyarap_at_depok_mobile/home/register.dart';
 import 'package:nyarap_at_depok_mobile/explore/widgets/recommendations_form.dart';
+import 'package:nyarap_at_depok_mobile/reviews/screens/review_list_screen.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 
@@ -75,21 +76,6 @@ class LeftDrawer extends StatelessWidget {
             ),
 
             ListTile(
-              leading: const Icon(Icons.favorite_border),
-              title: const Text(
-                'Wishlist',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'Montserrat',
-                ),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                // Navigate to wishlist page
-              },
-            ),
-
-            ListTile(
               leading: const Icon(Icons.star_border),
               title: const Text(
                 'Reviews',
@@ -99,11 +85,33 @@ class LeftDrawer extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                Navigator.pop(context);
-                // Navigate to reviews page
+                Navigator.pop(context); // Close drawer
+                
+                if (request.loggedIn) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ReviewListScreen(
+                        isAuthenticated: true,
+                      ),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Silakan login terlebih dahulu'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                  );
+                }
               },
             ),
-
+            
             // Preferences Menu
             ListTile(
               leading: const Icon(Icons.settings_outlined),
@@ -129,7 +137,7 @@ class LeftDrawer extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => RecommendationsForm(
+                              builder: (context) => const RecommendationsForm(
                                 isAuthenticated: true,
                               ),
                             ),

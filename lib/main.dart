@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
         ).copyWith(secondary: Colors.deepPurple[400]),
         fontFamily: 'Montserrat', // Make sure to add this font in pubspec.yaml
       ),
-      home:  ProductDetailsPage(),
+      home: const HomePage(),
       )
     );
   }
