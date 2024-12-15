@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nyarap_at_depok_mobile/explore/models/recommendation.dart';
+import 'package:nyarap_at_depok_mobile/explore/screens/product_card.dart'; // Import ProductCard
 
 class RecommendationsListPage extends StatelessWidget {
   final List<Recommendation> recommendations;
@@ -89,95 +90,20 @@ class RecommendationsListPage extends StatelessWidget {
                   itemCount: recommendations.length,
                   itemBuilder: (context, index) {
                     final recommendation = recommendations[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Image
-                          if (recommendation.imageUrl.isNotEmpty)
-                            ClipRRect(
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-                              child: Image.network(
-                                recommendation.imageUrl,
-                                height: 200,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    height: 200,
-                                    color: Colors.grey[300],
-                                    child: const Center(
-                                      child: Icon(Icons.error),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Title and rating
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        recommendation.name,
-                                        style: Theme.of(context).textTheme.titleLarge,
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.star, color: Colors.amber),
-                                        Text(recommendation.rating.toString()),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                
-                                // Restaurant name
-                                Text(
-                                  recommendation.restaurant,
-                                  style: Theme.of(context).textTheme.titleMedium,
-                                ),
-                                const SizedBox(height: 8),
-                                
-                                // Location and operational hours
-                                Row(
-                                  children: [
-                                    const Icon(Icons.location_on, size: 16),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(recommendation.location),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.access_time, size: 16),
-                                    const SizedBox(width: 4),
-                                    Text(recommendation.operationalHours),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                
-                                // Price
-                                Text(
-                                  recommendation.price,
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: Colors.green,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: ProductCard(
+                        imageUrl: recommendation.imageUrl,
+                        name: recommendation.name,
+                        restaurant: recommendation.restaurant,
+                        rating: recommendation.rating,
+                        kecamatan: recommendation.location,
+                        operationalHours: recommendation.operationalHours,
+                        price: recommendation.price,
+                        kategori: preferences['breakfast_type'] ?? '',
+                        onTap: () {
+                          // Add navigation or detail view logic here
+                        },
                       ),
                     );
                   },
