@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nyarap_at_depok_mobile/home/login.dart';
 import 'package:nyarap_at_depok_mobile/home/register.dart';
-import 'package:nyarap_at_depok_mobile/explore/widgets/recommendations_form.dart';
+import 'package:nyarap_at_depok_mobile/explore/screens/preferences_screen.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 
@@ -104,7 +104,6 @@ class LeftDrawer extends StatelessWidget {
               },
             ),
 
-            // Preferences Menu
             ListTile(
               leading: const Icon(Icons.settings_outlined),
               title: const Text(
@@ -116,7 +115,6 @@ class LeftDrawer extends StatelessWidget {
               ),
               onTap: () async {
                 Navigator.pop(context); // Close drawer first
-                
                 // Check if user is logged in by checking if there's a logged_in_user cookie
                 final isLoggedIn = request.loggedIn;
                 
@@ -124,17 +122,17 @@ class LeftDrawer extends StatelessWidget {
                   // Get user data from the cookie
                   final response = await request.get('http://localhost:8000/get_user_data/');
                   if (response['status'] == 'success') {
+                    final userData = response['data'];
                     if (context.mounted) {
-                      if (context.mounted) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => RecommendationsForm(
-                                isAuthenticated: true,
-                              ),
-                            ),
-                          );
-                        }
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PreferencesScreen(
+                            isAuthenticated: true,
+                            username: userData['user']['username'], // Pass the username from the response
+                          ),
+                        ),
+                      );
                     }
                   } else {
                     if (context.mounted) {
@@ -155,7 +153,6 @@ class LeftDrawer extends StatelessWidget {
                         backgroundColor: Colors.red,
                       ),
                     );
-                    
                     // Navigate to login page
                     Navigator.push(
                       context,
