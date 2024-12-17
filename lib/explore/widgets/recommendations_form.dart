@@ -3,15 +3,26 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:nyarap_at_depok_mobile/explore/screens/recommendation_list.dart';
 import 'package:nyarap_at_depok_mobile/explore/models/recommendation.dart';
+import 'package:nyarap_at_depok_mobile/explore/models/explore.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
+
+extension StringExtension on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
+  }
+}
 
 class RecommendationsForm extends StatefulWidget {
   final bool isAuthenticated;
   final String? username;
+  final Explore? initialPreferences;
 
   const RecommendationsForm({
     Key? key, 
     this.isAuthenticated = false,
     this.username,
+    this.initialPreferences,
   }) : super(key: key);
 
   @override
@@ -25,7 +36,6 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
-  // Breakfast choices matching the web form
   final Map<String, String> breakfastChoices = {
     'nasi': 'Nasi',
     'mie': 'Mie',
@@ -39,7 +49,6 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
     'masih_bingung': 'Masih Bingung...',
   };
 
-  // District choices
   final List<String> districts = [
     'Beji',
     'Bojongsari',
@@ -54,7 +63,6 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
     'Tapos',
   ];
 
-  // Price range choices with emojis
   final Map<String, Map<String, dynamic>> priceRanges = {
     '0-15000': {
       'label': 'Dibawah Rp 15.000',
@@ -78,85 +86,144 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
     },
   };
 
-  Future<void> _submitForm() async {
-  if (_selectedBreakfast == null || _selectedDistrict == null || _selectedPriceRange == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Mohon pilih semua kategori yang diperlukan')),
-    );
-    return;
-  }
-
-  setState(() => _isLoading = true);
-
-  try {
-    final url = Uri.parse('http://localhost:8000/api/recommendations/');
-    final requestBody = jsonEncode({
-      'breakfast_type': _selectedBreakfast,
-      'location': _selectedDistrict?.toLowerCase(),
-      'price_range': _selectedPriceRange,
-    });
-
-    print('Sending request to: $url with body: $requestBody');
-
-    final response = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: requestBody,
-    );
-
-    print('Response received: ${response.statusCode}');
-    print('Response body: ${response.body}');
-
-    if (!mounted) return;
-    if (response.statusCode == 200) {
-    final Map<String, dynamic> responseData = jsonDecode(response.body);
-    print('Full response data: $responseData');
-
-    if (responseData['status'] == 'success') {
-      final List<dynamic> recommendationsJson = responseData['recommendations'] as List<dynamic>;
-      print('Recommendations JSON: $recommendationsJson');
-
-      final List<Recommendation> recommendations = recommendationsJson
-          .map((json) => Recommendation.fromJson(json as Map<String, dynamic>))
-          .toList();
-
-      print('Processed recommendations: ${recommendations.length}');
-
-      if (!mounted) return;
-
-      // Tetap navigasi ke RecommendationsListPage meskipun recommendations kosong
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => RecommendationsListPage(
-            recommendations: recommendations, // Bisa kosong
-            preferences: {
-              'location': _selectedDistrict!,
-              'breakfast_type': breakfastChoices[_selectedBreakfast]!,
-              'price_range': priceRanges[_selectedPriceRange]!['label'],
-            },
-          ),
-        ),
-      );
-    } else {
-      throw Exception(responseData['message'] ?? 'Unknown error');
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isAuthenticated) {
+      _loadUserPreferences();
+    }
+    if (widget.initialPreferences != null) {
+      _selectedBreakfast = widget.initialPreferences!.fields.preferredBreakfastType;
+      _selectedDistrict = widget.initialPreferences!.fields.preferredLocation
+          .replaceAll('_', ' ')
+          .split(' ')
+          .map((word) => word.capitalize())
+          .join(' ');
+      _selectedPriceRange = widget.initialPreferences!.fields.preferredPriceRange;
     }
   }
-  } catch (e) {
-    if (!mounted) return;
-    print('Error: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Gagal terhubung ke server: $e')),
-    );
-  } finally {
-    if (mounted) {
+
+  Future<void> _loadUserPreferences() async {
+    setState(() => _isLoading = true);
+    try {
+      final request = context.read<CookieRequest>();
+      final response = await request.get('http://localhost:8000/get_user_data/');
+      
+      if (response['status'] == 'success' && response['data']['preferences'] != null) {
+        final preferences = response['data']['preferences'];
+        setState(() {
+          _selectedBreakfast = preferences['breakfast_category'];
+          _selectedDistrict = preferences['district_category']
+              .replaceAll('_', ' ')
+              .split(' ')
+              .map((word) => word.capitalize())
+              .join(' ');
+          _selectedPriceRange = preferences['price_range'];
+        });
+      }
+    } catch (e) {
+      print('Error loading user preferences: $e');
+    } finally {
       setState(() => _isLoading = false);
     }
   }
-} 
+
+  Future<void> _submitForm() async {
+    if (_selectedBreakfast == null || _selectedDistrict == null || _selectedPriceRange == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Mohon pilih semua kategori yang diperlukan')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Save preferences first if user is authenticated
+      
+      if (widget.isAuthenticated) {
+        final request = context.read<CookieRequest>();
+        try {
+          final response = await request.post(
+            'http://localhost:8000/api/preferences/save/',  // Pastikan endpoint ini sesuai dengan urls.py Django
+            {
+              'breakfast_category': _selectedBreakfast,
+              'district_category': _selectedDistrict?.toLowerCase().replaceAll(' ', '_'),
+              'price_range': _selectedPriceRange,
+            },  // Kirim sebagai Map, bukan JSON string
+          );
+          
+          print('Save preferences response: $response');
+          
+          if (response['status'] == 'success') {
+            print('Preferences saved successfully');
+          } else {
+            print('Failed to save preferences: ${response['message']}');
+          }
+        } catch (e) {
+          print('Error saving preferences: $e');
+        }
+      }
+
+      // Get recommendations
+      final url = Uri.parse('http://localhost:8000/api/recommendations/');
+      final requestBody = jsonEncode({
+        'breakfast_type': _selectedBreakfast,
+        'location': _selectedDistrict?.toLowerCase(),
+        'price_range': _selectedPriceRange,
+      });
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: requestBody,
+      );
+
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+        if (responseData['status'] == 'success') {
+          final List<dynamic> recommendationsJson = responseData['recommendations'] as List<dynamic>;
+          final List<Recommendation> recommendations = recommendationsJson
+              .map((json) => Recommendation.fromJson(json as Map<String, dynamic>))
+              .toList();
+
+          if (!mounted) return;
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RecommendationsListPage(
+                recommendations: recommendations,
+                preferences: {
+                  'location': _selectedDistrict!,
+                  'breakfast_type': breakfastChoices[_selectedBreakfast]!,
+                  'price_range': priceRanges[_selectedPriceRange]!['label'],
+                },
+              ),
+            ),
+          );
+        } else {
+          throw Exception(responseData['message'] ?? 'Unknown error');
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      print('Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal terhubung ke server: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -165,7 +232,6 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
           key: _formKey,
           child: Column(
             children: [
-              // Hero Section
               Container(
                 height: 300,
                 decoration: BoxDecoration(
@@ -177,7 +243,6 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
                 ),
                 child: Stack(
                   children: [
-                    // Background image would go here
                     Positioned.fill(
                       child: Opacity(
                         opacity: 0.6,
@@ -187,7 +252,6 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
                         ),
                       ),
                     ),
-                    // Overlay content
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.all(20.0),
@@ -220,13 +284,11 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
                 ),
               ),
 
-              // Form Content
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Breakfast Category Section
                     const Text(
                       'Kategori Sarapan',
                       style: TextStyle(
@@ -246,7 +308,6 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
                     ),
                     const SizedBox(height: 24),
                     
-                    // Breakfast Grid
                     GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -271,7 +332,6 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
                     
                     const SizedBox(height: 32),
 
-                    // Location Section
                     const Text(
                       'Lokasi',
                       style: TextStyle(
@@ -291,7 +351,6 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
                     ),
                     const SizedBox(height: 24),
                     
-                    // District Wrap
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -311,7 +370,6 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
                     
                     const SizedBox(height: 32),
 
-                    // Price Range Section
                     const Text(
                       'Rentang Harga',
                       style: TextStyle(
@@ -331,7 +389,6 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
                     ),
                     const SizedBox(height: 24),
                     
-                    // Price Range List
                     ...priceRanges.entries.map((entry) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
@@ -346,7 +403,6 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
                     
                     const SizedBox(height: 32),
 
-                    // Submit Button
                     ElevatedButton(
                       onPressed: _isLoading ? null : _submitForm,
                       style: ElevatedButton.styleFrom(

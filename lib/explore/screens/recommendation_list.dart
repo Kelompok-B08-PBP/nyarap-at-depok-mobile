@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nyarap_at_depok_mobile/explore/models/recommendation.dart';
-import 'package:nyarap_at_depok_mobile/explore/screens/product_card.dart'; // Import ProductCard
+import 'package:nyarap_at_depok_mobile/explore/screens/product_card.dart';
+import 'package:nyarap_at_depok_mobile/home/home_page.dart';
 
 class RecommendationsListPage extends StatelessWidget {
   final List<Recommendation> recommendations;
@@ -60,8 +61,8 @@ class RecommendationsListPage extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.search_off, size: 64, color: Colors.grey),
-                      SizedBox(height: 16),
+                      const Icon(Icons.search_off, size: 64, color: Colors.grey),
+                      const SizedBox(height: 16),
                       Text(
                         'Maaf, tidak ada rekomendasi saat ini.',
                         style: TextStyle(
@@ -69,7 +70,7 @@ class RecommendationsListPage extends StatelessWidget {
                           color: Colors.grey[700],
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
                         'Coba ubah filter pencarian Anda',
                         style: TextStyle(
@@ -77,10 +78,10 @@ class RecommendationsListPage extends StatelessWidget {
                           color: Colors.grey[600],
                         ),
                       ),
-                      SizedBox(height: 24),
+                      const SizedBox(height: 24),
                       ElevatedButton(
                         onPressed: () => Navigator.pop(context),
-                        child: Text('Kembali ke Pencarian'),
+                        child: const Text('Kembali ke Pencarian'),
                       ),
                     ],
                   ),
@@ -108,6 +109,39 @@ class RecommendationsListPage extends StatelessWidget {
                     );
                   },
                 ),
+          ),
+          
+          // Back to Home Button
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            child: TextButton.icon(
+              onPressed: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomePage()),
+                    (route) => false,
+                  );
+                },
+              icon: const Icon(
+                Icons.home,
+                color: Colors.orange,
+              ),
+              label: const Text(
+                'Kembali ke Beranda',
+                style: TextStyle(
+                  color: Colors.orange,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  side: const BorderSide(color: Colors.orange),
+                ),
+              ),
+            ),
           ),
         ],
       ),
