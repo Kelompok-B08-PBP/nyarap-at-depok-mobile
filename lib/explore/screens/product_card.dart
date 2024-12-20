@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import './product_details.dart';
 
 class ProductCard extends StatelessWidget {
   final String imageUrl;
@@ -9,7 +10,6 @@ class ProductCard extends StatelessWidget {
   final String operationalHours;
   final String price;
   final String kategori;
-  final VoidCallback onTap;
 
   const ProductCard({
     Key? key,
@@ -21,13 +21,33 @@ class ProductCard extends StatelessWidget {
     required this.operationalHours,
     required this.price,
     required this.kategori,
-    required this.onTap,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    void navigateToDetails() {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ProductDetailsScreen(
+            product: {
+              'name': name,
+              'restaurant': restaurant,
+              'rating': rating,
+              'location': kecamatan,
+              'operational_hours': operationalHours,
+              'display_price': price,
+              'image_url': imageUrl,
+              'kecamatan': kecamatan,
+              'category': kategori,
+            },
+          ),
+        ),
+      );
+    }
+
     return GestureDetector(
-      onTap: onTap,
+      onTap: navigateToDetails,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -174,7 +194,7 @@ class ProductCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '$price',
+                        price,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -182,7 +202,7 @@ class ProductCard extends StatelessWidget {
                         ),
                       ),
                       ElevatedButton(
-                        onPressed: onTap,
+                        onPressed: navigateToDetails,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.orange,
                           foregroundColor: Colors.white,
