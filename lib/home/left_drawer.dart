@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:nyarap_at_depok_mobile/home/login.dart';
 import 'package:nyarap_at_depok_mobile/home/register.dart';
 import 'package:nyarap_at_depok_mobile/explore/screens/preferences_screen.dart';
+import 'package:nyarap_at_depok_mobile/wishlist/screens/wishlist_screens.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'package:nyarap_at_depok_mobile/wishlist/screens/wishlist_screens.dart';
 
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
@@ -88,7 +88,7 @@ class LeftDrawer extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const WishlistPage(),
+                    builder: (context) => WishlistPage(), // `const` dihapus jika ada stateful widget
                   ),
                 );
               },

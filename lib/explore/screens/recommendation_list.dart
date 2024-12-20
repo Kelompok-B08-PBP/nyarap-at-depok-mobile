@@ -102,9 +102,6 @@ class RecommendationsListPage extends StatelessWidget {
                         operationalHours: recommendation.operationalHours,
                         price: recommendation.price,
                         kategori: preferences['breakfast_type'] ?? '',
-                        onTap: () {
-                          // Add navigation or detail view logic here
-                        },
                       ),
                     );
                   },
@@ -117,12 +114,12 @@ class RecommendationsListPage extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: TextButton.icon(
               onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomePage()),
-                    (route) => false,
-                  );
-                },
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomePage()),
+                  (route) => false,
+                );
+              },
               icon: const Icon(
                 Icons.home,
                 color: Colors.orange,

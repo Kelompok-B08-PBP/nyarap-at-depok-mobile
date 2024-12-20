@@ -338,21 +338,41 @@ class PreferenceCard extends StatelessWidget {
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  final Map<String, String> preferenceData = {
-                    'location': preference.preferredLocation,
-                    'breakfast_type': preference.preferredBreakfastType,
-                    'price_range': preference.preferredPriceRange,
-                  };
-                  onSave(preferenceData);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                ),
-                child: const Text('Gunakan Preferensi Ini'),
-              ),
+              child: // Inside PreferenceCard widget, modify the ElevatedButton's onPressed callback:
+
+ElevatedButton(
+  onPressed: () async {
+    // First save the preference
+    final Map<String, String> preferenceData = {
+      'location': preference.preferredLocation,
+      'breakfast_type': preference.preferredBreakfastType,
+      'price_range': preference.preferredPriceRange,
+    };
+    await onSave(preferenceData);
+
+    // Then navigate to recommendations list
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RecommendationsListPage(
+              recommendations: [], // You'll need to fetch recommendations first
+              preferences: {
+                'location': preference.preferredLocation,
+                'breakfast_type': preference.preferredBreakfastType,
+                'price_range': preference.preferredPriceRange,
+              },
             ),
+          ),
+        );
+      }
+    },
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.orange,
+    ),
+    child: const Text('Gunakan Preferensi Ini'),
+  ),
+              ),
           ],
         ),
       ),
@@ -418,4 +438,3 @@ class Preference {
     required this.createdAt,
   });
 }
-
