@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:nyarap_at_depok_mobile/reviews/models/reviews.dart';
 import 'package:nyarap_at_depok_mobile/reviews/screens/review_service.dart';
 import 'package:nyarap_at_depok_mobile/reviews/screens/edit_review_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 
 class ReviewCard extends StatelessWidget {
   final Review review;
@@ -30,7 +32,15 @@ class ReviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final date = review.fields.dateAdded.toString().split(' ')[0];
-
+    final request = Provider.of<CookieRequest>(context, listen: false);
+    
+    // Get current username from cookie
+    final currentUsername = request.jsonData['username'] as String?;
+    
+    // Get user data from backend (you'll need to add this endpoint)
+    final userId = review.fields.user;
+    
+    // Build the card content
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: Padding(
@@ -74,67 +84,78 @@ class ReviewCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditReviewScreen(review: review),
-                      ),
-                    );
-                    if (result == true) {
-                      onRefresh();
-                    }
-                  },
-                  style: TextButton.styleFrom(
-                    backgroundColor: const Color(0xFFF6D110),
-                    foregroundColor: Colors.black,
-                  ),
-                  child: const Text('Edit'),
-                ),
-                const SizedBox(width: 8),
-                TextButton(
-                  onPressed: () async {
-                    final confirm = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Delete Review'),
-                        content: const Text('Are you sure you want to delete this review?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancel'),
+            
+            // Only show action buttons if the current user is the author
+            if (currentUsername != null && request.loggedIn)
+              FutureBuilder<dynamic>(
+                future: reviewService.getCurrentUserId(currentUsername),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data == userId) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EditReviewScreen(review: review),
+                              ),
+                            );
+                            if (result == true) {
+                              onRefresh();
+                            }
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: const Color(0xFFF6D110),
+                            foregroundColor: Colors.black,
                           ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: const Text('Delete'),
+                          child: const Text('Edit'),
+                        ),
+                        const SizedBox(width: 8),
+                        TextButton(
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Delete Review'),
+                                content: const Text('Are you sure you want to delete this review?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, true),
+                                    child: const Text('Delete'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            
+                            if (confirm == true) {
+                              try {
+                                await reviewService.deleteReview(review.pk);
+                                onRefresh();
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error deleting review: $e')),
+                                );
+                              }
+                            }
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: const Color(0xFFC3372B),
+                            foregroundColor: Colors.white,
                           ),
-                        ],
-                      ),
+                          child: const Text('Delete'),
+                        ),
+                      ],
                     );
-                    
-                    if (confirm == true) {
-                      try {
-                        await reviewService.deleteReview(review.pk);
-                        onRefresh();
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error deleting review: $e')),
-                        );
-                      }
-                    }
-                  },
-                  style: TextButton.styleFrom(
-                    backgroundColor: const Color(0xFFC3372B),
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('Delete'),
-                ),
-              ],
-            ),
+                  }
+                  return const SizedBox.shrink(); // Hide buttons if not the author
+                },
+              ),
           ],
         ),
       ),

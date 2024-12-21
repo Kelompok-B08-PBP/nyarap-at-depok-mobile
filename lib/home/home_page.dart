@@ -1,14 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:nyarap_at_depok_mobile/explore/screens/browse_category.dart';
+import 'package:nyarap_at_depok_mobile/explore/screens/product_card.dart';
+import 'package:nyarap_at_depok_mobile/explore/widgets/recommendations_form.dart';
 import 'package:nyarap_at_depok_mobile/home/left_drawer.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  final bool isAuthenticated;
+  final Map<String, dynamic> preferences;
+  final List<Map<String, dynamic>>? recommendations;
+
+  const HomePage({
+    super.key,
+    this.isAuthenticated = false,
+    this.preferences = const {},
+    this.recommendations,
+  });
 
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
     final isMediumScreen = screenSize.width < 1000;
+
+    // Sample recommendation for non-logged in users
+    final defaultRecommendation = {
+      'imageUrl': 'images/nasi.png',
+      'name': 'Nasi Uduk',
+      'restaurant': 'Warung Bu Siti',
+      'rating': 4.5,
+      'kecamatan': 'Beji',
+      'operationalHours': '06.00 - 10.00',
+      'price': 'Rp 12.000',
+      'kategori': 'Nasi',
+    };
 
     return Scaffold(
       appBar: AppBar(
@@ -30,6 +54,33 @@ class HomePage extends StatelessWidget {
           ],
         ),
         iconTheme: const IconThemeData(color: Colors.black),
+        actions: [
+          if (isAuthenticated)
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Hi, ${preferences['username'] ?? 'User'}',
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: const Icon(
+                      Icons.person,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
       drawer: const LeftDrawer(),
       body: SingleChildScrollView(
@@ -39,8 +90,8 @@ class HomePage extends StatelessWidget {
             Stack(
               children: [
                 Container(
-                  height: isSmallScreen 
-                      ? screenSize.height * 0.5 
+                  height: isSmallScreen
+                      ? screenSize.height * 0.5
                       : screenSize.height * 0.7,
                   width: double.infinity,
                   decoration: const BoxDecoration(
@@ -51,8 +102,8 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  height: isSmallScreen 
-                      ? screenSize.height * 0.5 
+                  height: isSmallScreen
+                      ? screenSize.height * 0.5
                       : screenSize.height * 0.7,
                   padding: EdgeInsets.symmetric(
                     horizontal: screenSize.width * 0.05,
@@ -67,17 +118,15 @@ class HomePage extends StatelessWidget {
                             fontSize: isSmallScreen ? 32 : isMediumScreen ? 45 : 60,
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
-                            fontFamily: 'Montserrat',
                           ),
                         ),
                         Text(
-                          'mau sarapan apa hari ini?',
+                          'Mau Sarapan Apa Hari Ini?',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: isSmallScreen ? 32 : isMediumScreen ? 45 : 60,
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFFC3372B),
-                            fontFamily: 'Montserrat',
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -87,20 +136,22 @@ class HomePage extends StatelessWidget {
                           style: TextStyle(
                             fontSize: isSmallScreen ? 18 : isMediumScreen ? 24 : 32,
                             color: const Color(0xFF676B6F),
-                            fontFamily: 'Sarala',
                           ),
                         ),
                         const SizedBox(height: 32),
                         SizedBox(
                           width: isSmallScreen ? 200 : 250,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const RecommendationsForm(),
+                                ),
+                              );
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFFC3372B),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 30, 
-                                vertical: 12,
-                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(25),
                               ),
@@ -121,62 +172,16 @@ class HomePage extends StatelessWidget {
               ],
             ),
 
-            // How Nyarap Works Section
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: screenSize.width * 0.05,
-                vertical: 40,
+            // User Preferences (if logged in)
+            if (isAuthenticated && recommendations != null && recommendations!.isNotEmpty)
+              _buildRecommendationSection(recommendations!, 'Special For You'),
+
+            // Default recommendations for non-logged in users
+            if (!isAuthenticated)
+              _buildRecommendationSection(
+                [defaultRecommendation],
+                'Special For You',
               ),
-              child: Column(
-                children: [
-                  Text(
-                    'How Nyarap Works?',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: isSmallScreen ? 32 : 46,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF2E2C49),
-                      fontFamily: 'Montserrat',
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: isSmallScreen ? 1 : isMediumScreen ? 2 : 4,
-                    childAspectRatio: isSmallScreen ? 1.2 : 0.9,
-                    mainAxisSpacing: 20,
-                    crossAxisSpacing: 20,
-                    children: const [
-                      StepCard(
-                        step: "01",
-                        emoji: "🍳",
-                        title: "Choose what to eat",
-                        description: "Browse through our menu and pick your breakfast craving.",
-                      ),
-                      StepCard(
-                        step: "02",
-                        emoji: "📍",
-                        title: "Choose your location",
-                        description: "Set your location to find nearby breakfast options.",
-                      ),
-                      StepCard(
-                        step: "03",
-                        emoji: "💰",
-                        title: "Choose your price range",
-                        description: "Filter the options based on your budget.",
-                      ),
-                      StepCard(
-                        step: "04",
-                        emoji: "👤",
-                        title: "Add to Wishlist",
-                        description: "Login to save your favorite breakfast spots and get personalized recommendations.",
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
 
             // Category Section
             Container(
@@ -192,7 +197,6 @@ class HomePage extends StatelessWidget {
                       fontSize: isSmallScreen ? 28 : 36,
                       fontWeight: FontWeight.w600,
                       color: const Color(0xFF333333),
-                      fontFamily: 'Montserrat',
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -208,20 +212,60 @@ class HomePage extends StatelessWidget {
     );
   }
 
+  Widget _buildRecommendationSection(List<Map<String, dynamic>> items, String title) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: ProductCard(
+                  imageUrl: item['imageUrl'],
+                  name: item['name'],
+                  restaurant: item['restaurant'],
+                  rating: item['rating'].toDouble(),
+                  kecamatan: item['kecamatan'],
+                  operationalHours: item['operationalHours'],
+                  price: item['price'],
+                  kategori: item['kategori'],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCategoryList(BuildContext context) {
     return SizedBox(
       height: 180,
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          _buildCategoryItem('Nasi', 'assets/images/nasi.png'),
-          _buildCategoryItem('Roti', 'assets/images/roti.png'),
-          _buildCategoryItem('Lontong', 'assets/images/lontong.png'),
-          _buildCategoryItem('Cemilan', 'assets/images/cemilan.png'),
-          _buildCategoryItem('Minuman', 'assets/images/minuman.png'),
-          _buildCategoryItem('Mie', 'assets/images/mie.png'),
-          _buildCategoryItem('Sarapan Sehat', 'assets/images/telur.png'),
-          _buildCategoryItem('Bubur', 'assets/images/bubur.png'),
+          _buildCategoryItem('Nasi', 'assets/images/nasi.png', context),
+          _buildCategoryItem('Roti', 'assets/images/roti.png', context),
+          _buildCategoryItem('Lontong', 'assets/images/lontong.png', context),
+          _buildCategoryItem('Cemilan', 'assets/images/cemilan.png', context),
+          _buildCategoryItem('Minuman', 'assets/images/minuman.png', context),
+          _buildCategoryItem('Mie', 'assets/images/mie.png', context),
+          _buildCategoryItem('Sarapan Sehat', 'assets/images/telur.png', context),
+          _buildCategoryItem('Bubur', 'assets/images/bubur.png', context),
         ],
       ),
     );
@@ -236,130 +280,62 @@ class HomePage extends StatelessWidget {
       mainAxisSpacing: 20,
       crossAxisSpacing: 20,
       children: [
-        _buildCategoryItem('Nasi', 'assets/images/nasi.png'),
-        _buildCategoryItem('Roti', 'assets/images/roti.png'),
-        _buildCategoryItem('Lontong', 'assets/images/lontong.png'),
-        _buildCategoryItem('Cemilan', 'assets/images/cemilan.png'),
-        _buildCategoryItem('Minuman', 'assets/images/minuman.png'),
-        _buildCategoryItem('Mie', 'assets/images/mie.png'),
-        _buildCategoryItem('Sarapan Sehat', 'assets/images/telur.png'),
-        _buildCategoryItem('Bubur', 'assets/images/bubur.png'),
+        _buildCategoryItem('Nasi', 'assets/images/nasi.png', context),
+        _buildCategoryItem('Roti', 'assets/images/roti.png', context),
+        _buildCategoryItem('Lontong', 'assets/images/lontong.png', context),
+        _buildCategoryItem('Cemilan', 'assets/images/cemilan.png', context),
+        _buildCategoryItem('Minuman', 'assets/images/minuman.png', context),
+        _buildCategoryItem('Mie', 'assets/images/mie.png', context),
+        _buildCategoryItem('Sarapan Sehat', 'assets/images/telur.png', context),
+        _buildCategoryItem('Bubur', 'assets/images/bubur.png', context),
       ],
     );
   }
 
-  Widget _buildCategoryItem(String name, String imagePath) {
-    return Container(
-      width: 160,
-      padding: const EdgeInsets.all(10),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: AssetImage(imagePath),
-                fit: BoxFit.cover,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 4),
+  Widget _buildCategoryItem(String name, String imagePath, BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BrowseByCategoryPage(category: name),
+          ),
+        );
+      },
+      child: Container(
+        width: 160,
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                  image: AssetImage(imagePath),
+                  fit: BoxFit.cover,
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            name,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF333333),
-              fontFamily: 'Poppins',
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class StepCard extends StatelessWidget {
-  final String step;
-  final String emoji;
-  final String title;
-  final String description;
-
-  const StepCard({
-    super.key,
-    required this.step,
-    required this.emoji,
-    required this.title,
-    required this.description,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFAFAFA),
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            step,
-            style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFFFF5331),
-              fontFamily: 'Montserrat',
-            ),
-          ),
-          Container(
-            width: 60,
-            height: 60,
-            margin: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Center(
-              child: Text(
-                emoji,
-                style: const TextStyle(fontSize: 30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                  ),
+                ],
               ),
             ),
-          ),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF191720),
-              fontFamily: 'Montserrat',
+            const SizedBox(height: 12),
+            Text(
+              name,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            description,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF676B6F),
-              fontFamily: 'Poppins',
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -6,6 +6,7 @@ class Recommendation {
   final String imageUrl;
   final String location;
   final String operationalHours;
+  final String category;
 
   Recommendation({
     required this.name,
@@ -15,6 +16,7 @@ class Recommendation {
     required this.imageUrl,
     required this.location,
     required this.operationalHours,
+    required this.category
   });
 
   factory Recommendation.fromJson(Map<String, dynamic> json) {
@@ -28,6 +30,7 @@ class Recommendation {
       imageUrl: json['image_url'] ?? '',
       location: json['location'] ?? 'Lokasi tidak tersedia',
       operationalHours: json['operational_hours'] ?? 'Jam buka tidak tersedia',
+      category: json['category'] ?? '',
     );
   }
 }
