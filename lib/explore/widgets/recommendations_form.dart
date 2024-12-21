@@ -104,6 +104,7 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
           widget.initialPreferences!.fields.preferredPriceRange;
     }
   }
+  
 
   Future<void> _loadUserPreferences() async {
     setState(() => _isLoading = true);

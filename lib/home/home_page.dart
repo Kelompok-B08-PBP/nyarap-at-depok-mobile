@@ -7,7 +7,6 @@ import 'package:nyarap_at_depok_mobile/explore/models/explore.dart';
 import 'package:nyarap_at_depok_mobile/explore/models/recommendation.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
-import 'package:flutter/material.dart';
 import 'dart:convert';
 
 class HomePage extends StatefulWidget {
@@ -33,22 +32,43 @@ class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>>? _recommendations;
   bool _isLoading = false;
 
+  // Default recommendations that will show when there are no preferences
+  final defaultRecommendations = [
+    {
+      'imageUrl': 'https://sarahsvegankitchen.com/wp-content/uploads/2024/05/Vegan-Croissants-1.jpg',
+      'name': 'Cemilan Croissant',
+      'restaurant': 'Animo Bakery Depok',
+      'rating': 4.7,
+      'kecamatan': 'Beji',
+      'operationalHours': '7.00 am',
+      'price': 'Rp 20.000',
+      'kategori': 'Bakery',
+    },
+    {
+      'imageUrl': 'https://i.gojekapi.com/darkroom/gofood-indonesia/v2/images/uploads/f9dcfb8b-e73c-4653-9767-6a6e8fc5a813_Go-Biz_20230208_042205.jpeg',
+      'name': 'Bubur Ayam',
+      'restaurant': 'Bubur Ayam Sinar Garut',
+      'rating': 4.5,
+      'kecamatan': 'Beji',
+      'operationalHours': '5.00 am',
+      'price': 'Rp 13.000',
+      'kategori': 'Bubur',
+    },
+  ];
+
   @override
   void initState() {
-  super.initState();
-  
-  // Initialize with widget values if they exist
-  if (widget.preferences.isNotEmpty && widget.recommendations != null) {
-    setState(() {
-      _preferences = widget.preferences;
-      _recommendations = widget.recommendations;
-    });
-  } 
-  // Otherwise fetch fresh data if authenticated
-  else if (widget.isAuthenticated) {
-    _fetchUserData();
+    super.initState();
+    
+    if (widget.preferences.isNotEmpty && widget.recommendations != null) {
+      setState(() {
+        _preferences = widget.preferences;
+        _recommendations = widget.recommendations;
+      });
+    } else if (widget.isAuthenticated) {
+      _fetchUserData();
+    }
   }
-}
 
   Future<void> _fetchUserData() async {
     if (!mounted) return;
@@ -61,10 +81,9 @@ class _HomePageState extends State<HomePage> {
       if (response['status'] == 'success' && mounted) {
         final userData = response['data'];
         final username = userData['user']['username'];
-        final preferences = userData['preferences'];  // This matches backend structure
+        final preferences = userData['preferences'];
         
         if (preferences != null) {
-          // Set state with user data and preferences
           setState(() {
             _preferences = {
               'username': username,
@@ -72,38 +91,8 @@ class _HomePageState extends State<HomePage> {
             };
           });
 
-          // Immediately fetch recommendations
-          try {
-            final recResponse = await request.post(
-              'http://localhost:8000/api/recommendations/',
-              {
-                'breakfast_type': preferences['breakfast_category'],
-                'location': preferences['district_category'].replaceAll('_', ' '),
-                'price_range': preferences['price_range'],
-              },
-            );
-
-            if (recResponse['status'] == 'success' && mounted) {
-              setState(() {
-                _recommendations = List<Map<String, dynamic>>.from(
-                  recResponse['recommendations'].map((item) => {
-                    'imageUrl': item['imageUrl'],
-                    'name': item['name'],
-                    'restaurant': item['restaurant'],
-                    'rating': double.parse(item['rating'].toString()),
-                    'kecamatan': item['location'],
-                    'operationalHours': item['operationalHours'],
-                    'price': item['price'],
-                    'kategori': preferences['breakfast_category'],
-                  })
-                );
-              });
-            }
-          } catch (e) {
-            print('Error fetching recommendations: $e');
-          }
+          await _fetchRecommendations();
         } else {
-          // Still set username even if no preferences
           setState(() {
             _preferences = {
               'username': username,
@@ -118,7 +107,7 @@ class _HomePageState extends State<HomePage> {
         setState(() => _isLoading = false);
       }
     }
-}
+  }
 
   Future<void> _deletePreference() async {
     final request = context.read<CookieRequest>();
@@ -129,11 +118,16 @@ class _HomePageState extends State<HomePage> {
       );
 
       if (response['status'] == 'success') {
-        await _fetchUserData();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Preferensi berhasil dihapus')),
           );
+          
+          // Clear preferences and recommendations, keeping only username
+          setState(() {
+            _preferences = {'username': _preferences['username']};
+            _recommendations = null;
+          });
         }
       }
     } catch (e) {
@@ -176,8 +170,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-
-
   Future<void> _fetchRecommendations() async {
     if (!mounted) return;
 
@@ -196,7 +188,18 @@ class _HomePageState extends State<HomePage> {
 
       if (response['status'] == 'success' && mounted) {
         setState(() {
-          _recommendations = List<Map<String, dynamic>>.from(response['recommendations']);
+          _recommendations = List<Map<String, dynamic>>.from(
+            response['recommendations'].map((item) => {
+              'imageUrl': item['imageUrl'],
+              'name': item['name'],
+              'restaurant': item['restaurant'],
+              'rating': double.parse(item['rating'].toString()),
+              'kecamatan': item['location'],
+              'operationalHours': item['operationalHours'],
+              'price': item['price'],
+              'kategori': userPrefs['breakfast_category'],
+            })
+          );
         });
       }
     } catch (e) {
@@ -239,25 +242,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildPreferencesButton(BuildContext context) {
-
-    List<Recommendation> _convertToRecommendations(List<Map<String, dynamic>> maps) {
-  return maps.map((map) => Recommendation(
-    imageUrl: map['imageUrl'] ?? '',
-    name: map['name'] ?? '',
-    restaurant: map['restaurant'] ?? '',
-    rating: (map['rating'] ?? 0.0).toDouble(),
-    location: map['kecamatan'] ?? '',
-    operationalHours: map['operationalHours'] ?? '',
-    price: map['price'] ?? '',
-    // Add any other required fields from your Recommendation model
-  )).toList();
-}
-
     if (!_preferences.containsKey('preferences') ||
         _preferences['preferences'] == null) {
       return Container();
     }
-
+    
     final userPrefs = _preferences['preferences'];
 
     return Container(
@@ -265,13 +254,64 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Preferensi Anda',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Plus Jakarta Sans',
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Preferensi Anda',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Plus Jakarta Sans',
+                ),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Color(0xFFCE181B)),
+                    onPressed: () {
+                      // Navigate to RecommendationsForm when edit is pressed
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RecommendationsForm(
+                            isAuthenticated: widget.isAuthenticated,
+                            username: _preferences['username'],
+                          ),
+                        ),
+                      ).then((_) => _fetchUserData());
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Color(0xFFCE181B)),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Hapus Preferensi'),
+                            content: const Text('Apakah Anda yakin ingin menghapus preferensi?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Batal'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  _deletePreference();
+                                },
+                                child: const Text('Hapus'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           Container(
@@ -279,6 +319,7 @@ class _HomePageState extends State<HomePage> {
             decoration: BoxDecoration(
               color: Colors.yellow.shade50,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.yellow.shade600),
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.1),
@@ -311,57 +352,51 @@ class _HomePageState extends State<HomePage> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: _isLoading
-                      ? null
-                      : () async {
-                          setState(() => _isLoading = true);
-                          try {
-                            // Get recommendations using the existing preferences
-                            final request = context.read<CookieRequest>();
-                            final response = await request.post(
-                              'http://localhost:8000/api/recommendations/',
-                              jsonEncode({
-                                'breakfast_type': userPrefs['breakfast_category'],
-                                'location': userPrefs['district_category'].replaceAll('_', ' '),
-                                'price_range': userPrefs['price_range'],
-                              }),
-                            );
-
-                            if (!mounted) return;
-
-                            if (response['status'] == 'success') {
-                              final List<Recommendation> recommendations =
-                                  (response['recommendations'] as List)
-                                      .map((json) => Recommendation.fromJson(json))
-                                      .toList();
-
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => RecommendationsListPage(
-                                    recommendations: recommendations,
-                                    preferences: {
-                                      'location': _getDisplayLocation(userPrefs['district_category']),
-                                      'breakfast_type': _getDisplayBreakfastType(userPrefs['breakfast_category']),
-                                      'price_range': _getDisplayPriceRange(userPrefs['price_range']),
-                                    },
-                                  ),
-                                ),
+                        ? null
+                        : () async {
+                            setState(() => _isLoading = true);
+                            try {
+                              final request = context.read<CookieRequest>();
+                              final response = await request.post(
+                                'http://localhost:8000/api/recommendations/',
+                                jsonEncode({
+                                  'breakfast_type': userPrefs['breakfast_category'],
+                                  'location': userPrefs['district_category'].replaceAll('_', ' '),
+                                  'price_range': userPrefs['price_range'],
+                                }),
                               );
-                            } else {
-                              throw Exception(
-                                  response['message'] ?? 'Failed to get recommendations');
+                              if (!mounted) return;
+                              if (response['status'] == 'success') {
+                                final List<Recommendation> recommendations =
+                                    (response['recommendations'] as List)
+                                        .map((json) => Recommendation.fromJson(json))
+                                        .toList();
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => RecommendationsListPage(
+                                      recommendations: recommendations,
+                                      preferences: {
+                                        'location': _getDisplayLocation(userPrefs['district_category']),
+                                        'breakfast_type': _getDisplayBreakfastType(userPrefs['breakfast_category']),
+                                        'price_range': _getDisplayPriceRange(userPrefs['price_range']),
+                                      },
+                                      isAuthenticated: true,
+                                    ),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Terjadi kesalahan: $e')),
+                              );
+                            } finally {
+                              if (mounted) {
+                                setState(() => _isLoading = false);
+                              }
                             }
-                          } catch (e) {
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Terjadi kesalahan: $e')),
-                            );
-                          } finally {
-                            if (mounted) {
-                              setState(() => _isLoading = false);
-                            }
-                          }
-                        },
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFCE181B),
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -395,6 +430,42 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+  Widget _buildCategoryItem(String title, String imagePath) {
+  return Container(
+    width: 70,
+    margin: const EdgeInsets.only(right: 16),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage(imagePath),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Color(0xFF121212),
+            fontSize: 14,
+            fontFamily: 'Plus Jakarta Sans',
+            fontWeight: FontWeight.w500,
+            letterSpacing: -0.28,
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildPreferenceItem(IconData icon, String label, String value) {
     return Padding(
@@ -432,32 +503,6 @@ class _HomePageState extends State<HomePage> {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
 
-    // Default recommendations for non-logged in users
-    final defaultRecommendations = [
-      {
-        'imageUrl':
-            'https://sarahsvegankitchen.com/wp-content/uploads/2024/05/Vegan-Croissants-1.jpg',
-        'name': 'Cemilan Croissant',
-        'restaurant': 'Animo Bakery Depok',
-        'rating': 4.7,
-        'kecamatan': 'Beji',
-        'operationalHours': '7.00 am',
-        'price': 'Rp 20.000',
-        'kategori': 'Bakery',
-      },
-      {
-        'imageUrl':
-            'https://i.gojekapi.com/darkroom/gofood-indonesia/v2/images/uploads/f9dcfb8b-e73c-4653-9767-6a6e8fc5a813_Go-Biz_20230208_042205.jpeg',
-        'name': 'Bubur Ayam',
-        'restaurant': 'Bubur Ayam Sinar Garut',
-        'rating': 4.5,
-        'kecamatan': 'Beji',
-        'operationalHours': '5.00 am',
-        'price': 'Rp 13.000',
-        'kategori': 'Bubur',
-      },
-    ];
-
     return Scaffold(
       appBar: _buildAppBar(context),
       drawer: const LeftDrawer(),
@@ -474,26 +519,64 @@ class _HomePageState extends State<HomePage> {
                     child: CircularProgressIndicator(),
                   ),
                 ),
-              // Show preferences and recommendations when available
-              if (_preferences.containsKey('preferences'))
+              // Only show preferences section if preferences exist
+              if (_preferences.containsKey('preferences') && _preferences['preferences'] != null)
                 _buildPreferencesButton(context),
-              if (_recommendations != null && _recommendations!.isNotEmpty)
-                _buildRecommendationSection(
-                  _recommendations!,
-                  'Special For You',
-                  screenSize,
-                ),
+              // Show either user recommendations or default recommendations
+              _buildRecommendationSection(
+                _preferences.containsKey('preferences') && _recommendations != null && _recommendations!.isNotEmpty
+                    ? _recommendations!
+                    : defaultRecommendations,
+                'Special For You',
+                screenSize,
+              ),
             ] else
               _buildRecommendationSection(
                 defaultRecommendations,
                 'Special For You',
                 screenSize,
               ),
-          ],
+              Container(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Browse by Category',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'Plus Jakarta Sans',
+                        color: Color(0xFF121212),
+                        letterSpacing: -0.40,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildCategoryItem('Nasi', 'assets/images/nasi.png'),
+                          _buildCategoryItem('Cemilan', 'assets/images/cemilan.png'),
+                          _buildCategoryItem('Lontong', 'assets/images/lontong.png'),
+                          _buildCategoryItem('Makanan Berat', 'assets/images/makanan_berat.png'),
+                          _buildCategoryItem('Mie', 'assets/images/mie.png'),
+                          _buildCategoryItem('Minuman', 'assets/images/minuman.png'),
+                          _buildCategoryItem('Roti', 'assets/images/roti.png'),
+                          _buildCategoryItem('Bubur', 'assets/images/bubur.png'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _buildHowNyarapWorks(),
+            ],
+          ),    
         ),
-      ),
-    );
+      );
   }
+
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
@@ -518,7 +601,7 @@ class _HomePageState extends State<HomePage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Hi, ${widget.preferences['username'] ?? 'User'}',
+                  'Hi, ${_preferences['username'] ?? 'User'}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -549,8 +632,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildHeroSection(
-      BuildContext context, bool isSmallScreen, Size screenSize) {
+  Widget _buildHeroSection(BuildContext context, bool isSmallScreen, Size screenSize) {
     return Container(
       width: double.infinity,
       height: 311,
@@ -566,7 +648,6 @@ class _HomePageState extends State<HomePage> {
         fit: StackFit.expand,
         clipBehavior: Clip.none,
         children: [
-          // Background Circle
           Positioned(
             right: -247,
             top: 34,
@@ -579,7 +660,6 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          // Food Image
           Positioned(
             right: -80,
             bottom: -20,
@@ -604,14 +684,12 @@ class _HomePageState extends State<HomePage> {
               },
             ),
           ),
-          // Welcome Text and Search
           Positioned(
             left: 20,
             top: 24,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Welcome Chip
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -644,7 +722,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 40),
-                // Main Text
                 Text(
                   'Mau Sarapan Apa\nHari Ini?',
                   style: TextStyle(
@@ -657,7 +734,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 40),
-                // Search Bar
                 _buildSearchBar(context, screenSize),
               ],
             ),
@@ -718,6 +794,291 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildHowNyarapWorks() {
+ return Container(
+   padding: const EdgeInsets.all(16),
+   child: Column(
+     crossAxisAlignment: CrossAxisAlignment.start,
+     children: [
+       const Text(
+         'How Nyarap Works?',
+         style: TextStyle(
+           fontSize: 20,
+           fontWeight: FontWeight.bold,
+           fontFamily: 'Plus Jakarta Sans',
+         ),
+       ),
+       const SizedBox(height: 16),
+       // Section 1
+       Container(
+         margin: const EdgeInsets.only(bottom: 16),
+         decoration: BoxDecoration(
+           color: Colors.white,
+           borderRadius: BorderRadius.circular(12),
+           boxShadow: [
+             BoxShadow(
+               color: Colors.grey.withOpacity(0.1),
+               spreadRadius: 1,
+               blurRadius: 4,
+               offset: const Offset(0, 1),
+             ),
+           ],
+         ),
+         child: ExpansionTile(
+           iconColor: Colors.orange,
+           collapsedIconColor: Colors.orange,
+           backgroundColor: Colors.yellow.shade600,
+           collapsedBackgroundColor: Colors.yellow.shade300,
+           title: Row(
+             children: [
+               Container(
+                 padding: const EdgeInsets.all(8),
+                 child: const Icon(Icons.search, color: Colors.black),
+               ),
+               const SizedBox(width: 12),
+               const Row(
+                 children: [
+                   Text(
+                     '01  ',
+                     style: TextStyle(
+                       color: Color(0xFFCE181B),
+                       fontSize: 16,
+                       fontWeight: FontWeight.bold,
+                     ),
+                   ),
+                   Text(
+                     'Choose what to eat',
+                     style: TextStyle(
+                       fontSize: 16,
+                       fontWeight: FontWeight.w600,
+                     ),
+                   ),
+                 ],
+               ),
+             ],
+           ),
+           children: [
+             Container(
+               width: double.infinity,
+               padding: const EdgeInsets.all(16),
+               decoration: BoxDecoration(
+                 color: Colors.yellow.shade50,
+                 borderRadius: BorderRadius.circular(8),
+               ),
+               child: const Text(
+                 'Browse through our menu and pick your breakfast craving.',
+                 style: TextStyle(fontSize: 14, color: Colors.black87),
+               ),
+             ),
+           ],
+         ),
+       ),
+
+       // Section 2
+       Container(
+         margin: const EdgeInsets.only(bottom: 16),
+         decoration: BoxDecoration(
+           color: Colors.white,
+           borderRadius: BorderRadius.circular(12),
+           boxShadow: [
+             BoxShadow(
+               color: Colors.grey.withOpacity(0.1),
+               spreadRadius: 1,
+               blurRadius: 4,
+               offset: const Offset(0, 1),
+             ),
+           ],
+         ),
+         child: ExpansionTile(
+           iconColor: Colors.orange,
+           collapsedIconColor: Colors.orange,
+           backgroundColor: Colors.yellow.shade600,
+           collapsedBackgroundColor: Colors.yellow.shade300,
+           title: Row(
+             children: [
+               Container(
+                 padding: const EdgeInsets.all(8),
+                 child: const Icon(Icons.location_on, color: Colors.black),
+               ),
+               const SizedBox(width: 12),
+               const Row(
+                 children: [
+                   Text(
+                     '02  ',
+                     style: TextStyle(
+                       color: Color(0xFFCE181B),
+                       fontSize: 16,
+                       fontWeight: FontWeight.bold,
+                     ),
+                   ),
+                   Text(
+                     'Choose your location',
+                     style: TextStyle(
+                       fontSize: 16,
+                       fontWeight: FontWeight.w600,
+                     ),
+                   ),
+                 ],
+               ),
+             ],
+           ),
+           children: [
+             Container(
+               width: double.infinity,
+               padding: const EdgeInsets.all(16),
+               decoration: BoxDecoration(
+                 color: Colors.yellow.shade50,
+                 borderRadius: BorderRadius.circular(8),
+               ),
+               child: const Text(
+                 'Set your location to find nearby breakfast options.',
+                 style: TextStyle(fontSize: 14, color: Colors.black87),
+               ),
+             ),
+           ],
+         ),
+       ),
+
+       // Section 3
+       Container(
+         margin: const EdgeInsets.only(bottom: 16),
+         decoration: BoxDecoration(
+           color: Colors.white,
+           borderRadius: BorderRadius.circular(12),
+           boxShadow: [
+             BoxShadow(
+               color: Colors.grey.withOpacity(0.1),
+               spreadRadius: 1,
+               blurRadius: 4,
+               offset: const Offset(0, 1),
+             ),
+           ],
+         ),
+         child: ExpansionTile(
+           iconColor: Colors.orange,
+           collapsedIconColor: Colors.orange,
+           backgroundColor: Colors.yellow.shade600,
+           collapsedBackgroundColor: Colors.yellow.shade300,
+           title: Row(
+             children: [
+               Container(
+                 padding: const EdgeInsets.all(8),
+                 child: const Icon(Icons.attach_money, color: Colors.black),
+               ),
+               const SizedBox(width: 12),
+               const Row(
+                 children: [
+                   Text(
+                     '03  ',
+                     style: TextStyle(
+                       color: Color(0xFFCE181B),
+                       fontSize: 16,
+                       fontWeight: FontWeight.bold,
+                     ),
+                   ),
+                   Text(
+                     'Choose your price range',
+                     style: TextStyle(
+                       fontSize: 16,
+                       fontWeight: FontWeight.w600,
+                     ),
+                   ),
+                 ],
+               ),
+             ],
+           ),
+           children: [
+             Container(
+               width: double.infinity,
+               padding: const EdgeInsets.all(16),
+               decoration: BoxDecoration(
+                 color: Colors.yellow.shade50,
+                 borderRadius: BorderRadius.circular(8),
+               ),
+               child: const Text(
+                 'Filter the options based on your budget.',
+                 style: TextStyle(fontSize: 14, color: Colors.black87),
+               ),
+             ),
+           ],
+         ),
+       ),
+
+       // Section 4
+       Container(
+         margin: const EdgeInsets.only(bottom: 16),
+         decoration: BoxDecoration(
+           color: Colors.white,
+           borderRadius: BorderRadius.circular(12),
+           boxShadow: [
+             BoxShadow(
+               color: Colors.grey.withOpacity(0.1),
+               spreadRadius: 1,
+               blurRadius: 4,
+               offset: const Offset(0, 1),
+             ),
+           ],
+         ),
+         child: ExpansionTile(
+           iconColor: Colors.orange,
+           collapsedIconColor: Colors.orange,
+           backgroundColor: Colors.yellow.shade600,
+           collapsedBackgroundColor: Colors.yellow.shade300,
+           title: Row(
+             children: [
+               Container(
+                 padding: const EdgeInsets.all(8),
+                 child: const Icon(Icons.person, color: Colors.black),
+               ),
+               const SizedBox(width: 12),
+               const Expanded(
+                 child: Row(
+                   children: [
+                     Text(
+                       '04  ',
+                       style: TextStyle(
+                         color: Color(0xFFCE181B),
+                         fontSize: 16,
+                         fontWeight: FontWeight.bold,
+                       ),
+                     ),
+                     Expanded(
+                       child: Text(
+                         'Get personalized recommendations',
+                         style: TextStyle(
+                           fontSize: 16,
+                           fontWeight: FontWeight.w600,
+                         ),
+                         overflow: TextOverflow.ellipsis,
+                         maxLines: 2,
+                       ),
+                     ),
+                   ],
+                 ),
+               ),
+             ],
+           ),
+           children: [
+             Container(
+               width: double.infinity,
+               padding: const EdgeInsets.all(16),
+               decoration: BoxDecoration(
+                 color: Colors.yellow.shade50,
+                 borderRadius: BorderRadius.circular(8),
+               ),
+               child: const Text(
+                 'Login to save your favorite breakfast spots, post in the community, and leave reviews.',
+                 style: TextStyle(fontSize: 14, color: Colors.black87),
+               ),
+             ),
+           ],
+         ),
+       ),
+     ],
+   ),
+ );
+}
+
   Widget _buildRecommendationSection(
     List<Map<String, dynamic>> items,
     String title,
@@ -738,8 +1099,8 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 16),
           GridView.builder(
-            physics: const NeverScrollableScrollPhysics(), // Disable grid view scroll
-            shrinkWrap: true, // Allow grid to be properly sized within SingleChildScrollView
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               childAspectRatio: MediaQuery.of(context).size.width > 600 ? 0.8 : 0.7,
@@ -766,4 +1127,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
