@@ -31,6 +31,7 @@ class _HomePageState extends State<HomePage> {
   Map<String, dynamic> _preferences = {};
   List<Map<String, dynamic>>? _recommendations;
   bool _isLoading = false;
+  String? _cacheKey;  
 
   // Default recommendations that will show when there are no preferences
   final defaultRecommendations = [
@@ -69,6 +70,57 @@ class _HomePageState extends State<HomePage> {
       _fetchUserData();
     }
   }
+
+  void _onUsePreferences() async {
+    setState(() => _isLoading = true);
+    try {
+      final request = context.read<CookieRequest>();
+      final userPrefs = _preferences['preferences'];
+      
+      final response = await request.post(
+        'http://localhost:8000/api/recommendations/',
+        jsonEncode({
+          'breakfast_type': userPrefs['breakfast_category'],
+          'location': userPrefs['district_category'].replaceAll('_', ' '),
+          'price_range': userPrefs['price_range'],
+        }),
+      );
+      
+      if (!mounted) return;
+      if (response['status'] == 'success') {
+        final List<Recommendation> recommendations =
+            (response['recommendations'] as List)
+                .map((json) => Recommendation.fromJson(json))
+                .toList();
+        
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RecommendationsListPage(
+              recommendations: recommendations,
+              preferences: {
+                'location': _getDisplayLocation(userPrefs['district_category']),
+                'breakfast_type': _getDisplayBreakfastType(userPrefs['breakfast_category']),
+                'price_range': _getDisplayPriceRange(userPrefs['price_range']),
+              },
+              isAuthenticated: true,
+              cacheKey: response['cache_key'],  // Tambahkan ini
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Terjadi kesalahan: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
 
   Future<void> _fetchUserData() async {
     if (!mounted) return;
@@ -187,15 +239,18 @@ class _HomePageState extends State<HomePage> {
       );
 
       if (response['status'] == 'success' && mounted) {
+        // Simpan cache_key
         setState(() {
+          _cacheKey = response['cache_key'];  // Tambahkan ini
           _recommendations = List<Map<String, dynamic>>.from(
             response['recommendations'].map((item) => {
-              'imageUrl': item['imageUrl'],
+              'id': item['id'],  // Pastikan ID tersimpan
+              'imageUrl': item['image_url'],
               'name': item['name'],
               'restaurant': item['restaurant'],
               'rating': double.parse(item['rating'].toString()),
               'kecamatan': item['location'],
-              'operationalHours': item['operationalHours'],
+              'operationalHours': item['operational_hours'],
               'price': item['price'],
               'kategori': userPrefs['breakfast_category'],
             })
@@ -206,6 +261,7 @@ class _HomePageState extends State<HomePage> {
       print('Error fetching recommendations: $e');
     }
   }
+
 
   String _getDisplayBreakfastType(String type) {
     final Map<String, String> breakfastTypes = {
@@ -348,81 +404,86 @@ class _HomePageState extends State<HomePage> {
                   _getDisplayPriceRange(userPrefs['price_range']),
                 ),
                 const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading
-                        ? null
-                        : () async {
-                            setState(() => _isLoading = true);
-                            try {
-                              final request = context.read<CookieRequest>();
-                              final response = await request.post(
-                                'http://localhost:8000/api/recommendations/',
-                                jsonEncode({
-                                  'breakfast_type': userPrefs['breakfast_category'],
-                                  'location': userPrefs['district_category'].replaceAll('_', ' '),
-                                  'price_range': userPrefs['price_range'],
-                                }),
-                              );
-                              if (!mounted) return;
-                              if (response['status'] == 'success') {
-                                final List<Recommendation> recommendations =
-                                    (response['recommendations'] as List)
-                                        .map((json) => Recommendation.fromJson(json))
-                                        .toList();
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => RecommendationsListPage(
-                                      recommendations: recommendations,
-                                      preferences: {
-                                        'location': _getDisplayLocation(userPrefs['district_category']),
-                                        'breakfast_type': _getDisplayBreakfastType(userPrefs['breakfast_category']),
-                                        'price_range': _getDisplayPriceRange(userPrefs['price_range']),
-                                      },
-                                      isAuthenticated: true,
-                                    ),
-                                  ),
-                                );
-                              }
-                            } catch (e) {
-                              if (!mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Terjadi kesalahan: $e')),
-                              );
-                            } finally {
-                              if (mounted) {
-                                setState(() => _isLoading = false);
-                              }
-                            }
-                          },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFCE181B),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text(
-                            'Gunakan Preferensi Ini',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                // Di dalam _buildPreferencesButton
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : () async {
+                    setState(() => _isLoading = true);
+                    try {
+                      final request = context.read<CookieRequest>();
+                      final userPrefs = _preferences['preferences'];
+                      
+                      final response = await request.post(
+                        'http://localhost:8000/api/recommendations/',
+                        jsonEncode({
+                          'breakfast_type': userPrefs['breakfast_category'],
+                          'location': userPrefs['district_category'].replaceAll('_', ' '),
+                          'price_range': userPrefs['price_range'],
+                        }),
+                      );
+                      
+                      if (!mounted) return;
+                      if (response['status'] == 'success') {
+                        final String cacheKey = response['cache_key'];  // Ambil cache_key
+                        final List<Recommendation> recommendations =
+                            (response['recommendations'] as List)
+                                .map((json) => Recommendation.fromJson(json))
+                                .toList();
+                        
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => RecommendationsListPage(
+                              recommendations: recommendations,
+                              preferences: {
+                                'location': _getDisplayLocation(userPrefs['district_category']),
+                                'breakfast_type': _getDisplayBreakfastType(userPrefs['breakfast_category']),
+                                'price_range': _getDisplayPriceRange(userPrefs['price_range']),
+                              },
+                              isAuthenticated: true,
+                              cacheKey: cacheKey,  // Teruskan cache_key
                             ),
                           ),
+                        );
+                      }
+                    } catch (e) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Terjadi kesalahan: $e')),
+                      );
+                    } finally {
+                      if (mounted) {
+                        setState(() => _isLoading = false);
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFCE181B),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Gunakan Preferensi Ini',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                 ),
+              )
               ],
             ),
           ),
@@ -1111,6 +1172,7 @@ class _HomePageState extends State<HomePage> {
             itemBuilder: (context, index) {
               final item = items[index];
               return ProductCard(
+                id: item['id'] ?? (index + 1).toString(),  // Gunakan ID dari recommendation jika ada
                 imageUrl: item['imageUrl'],
                 name: item['name'],
                 restaurant: item['restaurant'],
@@ -1119,11 +1181,14 @@ class _HomePageState extends State<HomePage> {
                 operationalHours: item['operationalHours'],
                 price: item['price'],
                 kategori: item['kategori'],
+                cacheKey: _cacheKey ?? '',  // Gunakan cache_key yang disimpan
               );
             },
           ),
         ],
       ),
     );
+  
+  
   }
 }

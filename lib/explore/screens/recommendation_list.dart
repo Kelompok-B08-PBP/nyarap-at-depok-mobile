@@ -10,12 +10,14 @@ class RecommendationsListPage extends StatelessWidget {
   final List<Recommendation> recommendations;
   final Map<String, String> preferences;
   final bool isAuthenticated;
+  final String cacheKey; 
 
   const RecommendationsListPage({
     Key? key,
     required this.recommendations,
     required this.preferences,
     this.isAuthenticated = false,
+    required this.cacheKey, 
   }) : super(key: key);
 
   Widget _buildPreferenceChip(String label, IconData icon) {
@@ -249,6 +251,7 @@ class RecommendationsListPage extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final recommendation = recommendations[index];
                           return ProductCard(
+                            id: recommendation.id, // Tambahkan ini sesuai dengan logika backend
                             imageUrl: recommendation.imageUrl,
                             name: recommendation.name,
                             restaurant: recommendation.restaurant,
@@ -257,11 +260,13 @@ class RecommendationsListPage extends StatelessWidget {
                             operationalHours: recommendation.operationalHours,
                             price: recommendation.price,
                             kategori: preferences['breakfast_type'] ?? '',
+                            cacheKey: cacheKey,
                           );
                         },
                       ),
 
                       // Back to Home Button
+                      // Back to Home Button with updated preferences
                       Padding(
                         padding: const EdgeInsets.all(16),
                         child: TextButton.icon(
@@ -285,10 +290,12 @@ class RecommendationsListPage extends StatelessWidget {
                                           'breakfast_category': preferences['breakfast_type'],
                                           'district_category': preferences['location'],
                                           'price_range': preferences['price_range'],
+                                          'cache_key': cacheKey,  // Tambahkan ini juga
                                         },
                                         'username': username,
                                       },
                                       recommendations: recommendations.map((recommendation) => {
+                                        'id': recommendation.id,  // Tambahkan id
                                         'imageUrl': recommendation.imageUrl,
                                         'name': recommendation.name,
                                         'restaurant': recommendation.restaurant,

@@ -431,6 +431,7 @@ class _PreferenceCardState extends State<PreferenceCard> {
                           if (!mounted) return;
 
                           if (response['status'] == 'success') {
+                            final String cacheKey = response['cache_key'];
                             final List<Recommendation> recommendations =
                                 (response['recommendations'] as List)
                                     .map((json) => Recommendation.fromJson(json))
@@ -449,6 +450,7 @@ class _PreferenceCardState extends State<PreferenceCard> {
                                     'price_range': _getDisplayPriceRange(
                                         widget.preference.preferredPriceRange),
                                   },
+                                  cacheKey: cacheKey,
                                 ),
                               ),
                             );
