@@ -1,13 +1,31 @@
-// product_details_screen.dart
 import 'package:flutter/material.dart';
+import 'package:nyarap_at_depok_mobile/wishlist/services/wishlist_services.dart';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 
-class ProductDetailsScreen extends StatelessWidget {
+class ProductDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> product;
 
-  const ProductDetailsScreen({Key? key, required this.product}) : super(key: key);
+  const ProductDetailsScreen({Key? key, required this.product})
+      : super(key: key);
+
+  @override
+  State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
+}
+
+class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
+  late Map<String, dynamic> _product;
+
+  @override
+  void initState() {
+    super.initState();
+    _product = Map<String, dynamic>.from(widget.product);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final request = Provider.of<CookieRequest>(context, listen: false);
+
     return Scaffold(
       body: SingleChildScrollView(
         child: SafeArea(
@@ -78,7 +96,7 @@ class ProductDetailsScreen extends StatelessWidget {
                             top: Radius.circular(20),
                           ),
                           child: Image.network(
-                            product['image_url'] ?? '/api/placeholder/800/400',
+                            _product['image_url'] ?? '/api/placeholder/800/400',
                             height: 300,
                             width: double.infinity,
                             fit: BoxFit.cover,
@@ -106,7 +124,7 @@ class ProductDetailsScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
-                              product['category'] ?? '',
+                              _product['category'] ?? '',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 13,
@@ -124,9 +142,8 @@ class ProductDetailsScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Title Section
                           Text(
-                            product['name'] ?? '',
+                            _product['name'] ?? '',
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.w700,
@@ -135,7 +152,7 @@ class ProductDetailsScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            product['restaurant'] ?? '',
+                            _product['restaurant'] ?? '',
                             style: const TextStyle(
                               fontSize: 16,
                               color: Color(0xFF4A5568),
@@ -143,7 +160,6 @@ class ProductDetailsScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
 
-                          // Rating and Price
                           Row(
                             children: [
                               Container(
@@ -163,7 +179,7 @@ class ProductDetailsScreen extends StatelessWidget {
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
-                                      '${product['rating']}',
+                                      '${_product['rating']}',
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w600,
@@ -175,7 +191,7 @@ class ProductDetailsScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                product['display_price'] ?? '',
+                                _product['display_price'] ?? '',
                                 style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w700,
@@ -185,7 +201,6 @@ class ProductDetailsScreen extends StatelessWidget {
                             ],
                           ),
 
-                          // Info Grid
                           Container(
                             margin: const EdgeInsets.symmetric(vertical: 20),
                             padding: const EdgeInsets.all(16),
@@ -194,33 +209,33 @@ class ProductDetailsScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Column(
-                                children: [
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Icon(
-                                        Icons.location_on,
-                                        size: 20,
-                                        color: const Color(0xFF4A5568),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Text(
-                                          product['location'] ?? '',
-                                          style: const TextStyle(
-                                            color: Color(0xFF4A5568),
-                                            fontSize: 14,
-                                          ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(
+                                      Icons.location_on,
+                                      size: 20,
+                                      color: Color(0xFF4A5568),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        _product['location'] ?? '',
+                                        style: const TextStyle(
+                                          color: Color(0xFF4A5568),
+                                          fontSize: 14,
                                         ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
+                                ),
                                 const SizedBox(height: 16),
                                 _buildInfoItem(
                                   Icons.access_time,
-                                  product['operational_hours'] ?? '',
+                                  _product['operational_hours'] ?? '',
                                 ),
                               ],
                             ),
@@ -231,19 +246,62 @@ class ProductDetailsScreen extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: ElevatedButton(
-                                  onPressed: () {
-                                    // Add to wishlist logic
+                                  // In the ElevatedButton onPressed callback:
+                                  onPressed: () async {
+                                    print(
+                                        'Add to wishlist button pressed'); // Debug log
+                                    print('Add to wishlist button pressed');
+                                    print(_product);
+                                    final productId = _product['product_id'];
+                                    print(_product); // Try this field name
+                                    if (productId != null) {
+                                      final success =
+                                          await WishlistService.addToWishlist(
+                                        context,
+                                        _product,
+                                      );
+
+                                      print(
+                                          'Wishlist operation result: $success'); // Debug log
+
+                                      if (success) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                                '${_product['name']} added to wishlist'),
+                                            backgroundColor: Colors.green,
+                                          ),
+                                        );
+                                        setState(() {
+                                          _product['is_in_wishlist'] = true;
+                                        });
+                                      } else {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'Failed to add to wishlist'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    } else {
+                                      print('Product ID is null'); // Debug log
+                                    }
                                   },
+
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFFEDF2F7),
                                     foregroundColor: const Color(0xFF2D3748),
-                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                   ),
                                   child: Text(
-                                    product['is_in_wishlist'] ?? false
+                                    _product['is_in_wishlist'] ?? false
                                         ? 'Remove from Wishlist'
                                         : 'Add to Wishlist',
                                   ),

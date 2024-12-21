@@ -88,7 +88,7 @@ class LeftDrawer extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => WishlistPage(), // `const` dihapus jika ada stateful widget
+                    builder: (context) => WishlistScreen(), // `const` dihapus jika ada stateful widget
                   ),
                 );
               },

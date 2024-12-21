@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final wishlistItems = wishlistItemsFromJson(jsonString);
-
 import 'dart:convert';
 
 WishlistItems wishlistItemsFromJson(String str) => WishlistItems.fromJson(json.decode(str));
@@ -25,11 +21,11 @@ class WishlistItems {
 }
 
 class Wishlist {
-    String id;
+    int? id;
     String name;
     String category;
     String location;
-    int price;
+    int? price;
     double rating;
     String operationalHours;
     String imageUrl;
@@ -39,21 +35,21 @@ class Wishlist {
         required this.name,
         required this.category,
         required this.location,
-        required this.price,
+        this.price,
         required this.rating,
         required this.operationalHours,
         required this.imageUrl,
     });
 
     factory Wishlist.fromJson(Map<String, dynamic> json) => Wishlist(
-        id: json["id"],
-        name: json["name"],
-        category: json["category"],
-        location: json["location"],
-        price: json["price"],
-        rating: json["rating"],
-        operationalHours: json["operational_hours"],
-        imageUrl: json["image_url"],
+        id: json["id"] ?? json["product_id"] ?? 0, 
+        name: json["name"] ?? "",
+        category: json["category"] ?? "",
+        location: json["location"] ?? "",
+        price: json["price"] != null ? int.tryParse(json["price"].toString()) : null,
+        rating: (json["rating"] ?? 0.0).toDouble(),
+        operationalHours: json["operational_hours"] ?? "",
+        imageUrl: json["image_url"] ?? "",
     );
 
     Map<String, dynamic> toJson() => {
