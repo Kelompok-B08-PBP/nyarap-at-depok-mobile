@@ -74,8 +74,7 @@ class _LoginPageState extends State<LoginPage> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(12.0)),
                       ),
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                     ),
                   ),
                   const SizedBox(height: 12.0),
@@ -87,8 +86,7 @@ class _LoginPageState extends State<LoginPage> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(12.0)),
                       ),
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                     ),
                     obscureText: true,
                   ),
@@ -98,8 +96,7 @@ class _LoginPageState extends State<LoginPage> {
                       String username = _usernameController.text;
                       String password = _passwordController.text;
 
-                      final response = await request
-                          .login("http://localhost:8000/auth/login/", {
+                      final response = await request.login("http://localhost:8000/auth/login/", {
                         'username': username,
                         'password': password,
                       });
@@ -111,14 +108,18 @@ class _LoginPageState extends State<LoginPage> {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const HomePage()),
+                              builder: (context) => HomePage(
+                                isAuthenticated: true,
+                                preferences: {
+                                  'username': uname,
+                                },
+                              ),
+                            ),
                           );
                           ScaffoldMessenger.of(context)
                             ..hideCurrentSnackBar()
                             ..showSnackBar(
-                              SnackBar(
-                                  content:
-                                      Text("$message Selamat datang, $uname.")),
+                              SnackBar(content: Text("$message Selamat datang, $uname.")),
                             );
                         }
                       } else {
@@ -131,6 +132,8 @@ class _LoginPageState extends State<LoginPage> {
                               actions: [
                                 TextButton(
                                   child: const Text('OK'),
+                                  // Lanjutan lib/screens/auth/login_page.dart
+
                                   onPressed: () {
                                     Navigator.pop(context);
                                   },
@@ -143,8 +146,8 @@ class _LoginPageState extends State<LoginPage> {
                     },
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
-                      minimumSize: const Size(double.infinity, 50),
                       backgroundColor: Theme.of(context).colorScheme.primary,
+                      minimumSize: const Size(double.infinity, 50),
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                     ),
                     child: const Text('Login'),
@@ -155,7 +158,8 @@ class _LoginPageState extends State<LoginPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const RegisterPage()),
+                          builder: (context) => const RegisterPage(),
+                        ),
                       );
                     },
                     child: Text(
@@ -173,5 +177,12 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }

@@ -10,6 +10,9 @@ class ProductCard extends StatelessWidget {
   final String operationalHours;
   final String price;
   final String kategori;
+  
+  final double? width;
+  final double? imageHeight;
 
   const ProductCard({
     Key? key,
@@ -21,10 +24,20 @@ class ProductCard extends StatelessWidget {
     required this.operationalHours,
     required this.price,
     required this.kategori,
+    this.width,
+    this.imageHeight,
   }) : super(key: key);
+
+  String truncateLocation(String text) {
+    if (text.length <= 10) return text;
+    return '${text.substring(0, 10)}...';
+  }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+    
     void navigateToDetails() {
       Navigator.push(
         context,
@@ -49,6 +62,12 @@ class ProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: navigateToDetails,
       child: Container(
+        width: width,
+        constraints: BoxConstraints(
+          maxWidth: width ?? 600,
+          minWidth: 200,
+          maxHeight: 100,
+        ),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -62,19 +81,19 @@ class ProductCard extends StatelessWidget {
           ],
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image Section
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
               child: Image.network(
                 imageUrl,
-                height: 160,
+                height: imageHeight ?? (isSmallScreen ? 100 : 120),
                 width: double.infinity,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    height: 160,
+                    height: imageHeight ?? (isSmallScreen ? 100 : 120),
                     color: Colors.grey[200],
                     child: const Center(
                       child: Icon(Icons.image_not_supported, color: Colors.grey),
@@ -85,19 +104,21 @@ class ProductCard extends StatelessWidget {
             ),
             
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.symmetric(
+                horizontal: isSmallScreen ? 8.0 : 10.0,
+                vertical: isSmallScreen ? 6.0 : 8.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title and Rating Row
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Text(
                           name,
-                          style: const TextStyle(
-                            fontSize: 16,
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 13 : 14,
                             fontWeight: FontWeight.bold,
                           ),
                           maxLines: 2,
@@ -106,26 +127,28 @@ class ProductCard extends StatelessWidget {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                          horizontal: 6,
+                          vertical: 2,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.green,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(6),
                         ),
+                        
                         child: Row(
                           children: [
                             const Icon(
                               Icons.star,
-                              size: 16,
+                              size: 12,
                               color: Colors.yellow,
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 2),
                             Text(
                               rating.toString(),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 11,
                               ),
                             ),
                           ],
@@ -134,83 +157,102 @@ class ProductCard extends StatelessWidget {
                     ],
                   ),
                   
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   
-                  // Restaurant Name
                   Text(
                     restaurant,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: isSmallScreen ? 11 : 12,
                       color: Colors.grey[600],
                     ),
-                  ),
-                  
-                  const SizedBox(height: 8),
-                  
-                  // Location
-                  Row(
-                    children: [
-                      Icon(Icons.location_on_outlined, 
-                        size: 16, 
-                        color: Colors.grey[600]
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          kecamatan,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ),
-                    ],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   
                   const SizedBox(height: 4),
                   
-                  // Opening Hours
                   Row(
                     children: [
-                      Icon(Icons.access_time, 
-                        size: 16, 
+                      Icon(
+                        Icons.location_on_outlined, 
+                        size: 12,
                         color: Colors.grey[600]
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 2),
                       Text(
-                        'Opens $operationalHours',
+                        truncateLocation(kecamatan),
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: isSmallScreen ? 11 : 12,
                           color: Colors.grey[600],
                         ),
                       ),
                     ],
                   ),
                   
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 2),
                   
-                  // Price and Button Row
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time, 
+                        size: 12,
+                        color: Colors.grey[600]
+                      ),
+                      const SizedBox(width: 2),
+                      Expanded(
+                        child: Text(
+                          'Opens $operationalHours',
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 11 : 12,
+                            color: Colors.grey[600],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 6),
+                  
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        price,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green
+                      Expanded(
+                        child: Text(
+                          price,
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 13 : 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      ElevatedButton(
-                        onPressed: navigateToDetails,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        height: 28,
+                        child: ElevatedButton(
+                          onPressed: navigateToDetails,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 0,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          ),
+                          child: Text(
+                            'Lihat Detail',
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 11 : 12,
+                            ),
                           ),
                         ),
-                        child: const Text('Lihat Detail'),
                       ),
                     ],
                   ),
