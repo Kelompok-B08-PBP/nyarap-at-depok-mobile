@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nyarap_at_depok_mobile/explore/screens/browse_category.dart';
+import 'package:nyarap_at_depok_mobile/explore/widgets/recommendations_form.dart';
 import 'package:nyarap_at_depok_mobile/home/left_drawer.dart';
 
 class HomePage extends StatelessWidget {
@@ -39,8 +41,8 @@ class HomePage extends StatelessWidget {
             Stack(
               children: [
                 Container(
-                  height: isSmallScreen 
-                      ? screenSize.height * 0.5 
+                  height: isSmallScreen
+                      ? screenSize.height * 0.5
                       : screenSize.height * 0.7,
                   width: double.infinity,
                   decoration: const BoxDecoration(
@@ -51,8 +53,8 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  height: isSmallScreen 
-                      ? screenSize.height * 0.5 
+                  height: isSmallScreen
+                      ? screenSize.height * 0.5
                       : screenSize.height * 0.7,
                   padding: EdgeInsets.symmetric(
                     horizontal: screenSize.width * 0.05,
@@ -94,11 +96,18 @@ class HomePage extends StatelessWidget {
                         SizedBox(
                           width: isSmallScreen ? 200 : 250,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const RecommendationsForm(),
+                                ),
+                              );
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFFC3372B),
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 30, 
+                                horizontal: 30,
                                 vertical: 12,
                               ),
                               shape: RoundedRectangleBorder(
@@ -119,63 +128,6 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-
-            // How Nyarap Works Section
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: screenSize.width * 0.05,
-                vertical: 40,
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'How Nyarap Works?',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: isSmallScreen ? 32 : 46,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF2E2C49),
-                      fontFamily: 'Montserrat',
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: isSmallScreen ? 1 : isMediumScreen ? 2 : 4,
-                    childAspectRatio: isSmallScreen ? 1.2 : 0.9,
-                    mainAxisSpacing: 20,
-                    crossAxisSpacing: 20,
-                    children: const [
-                      StepCard(
-                        step: "01",
-                        emoji: "🍳",
-                        title: "Choose what to eat",
-                        description: "Browse through our menu and pick your breakfast craving.",
-                      ),
-                      StepCard(
-                        step: "02",
-                        emoji: "📍",
-                        title: "Choose your location",
-                        description: "Set your location to find nearby breakfast options.",
-                      ),
-                      StepCard(
-                        step: "03",
-                        emoji: "💰",
-                        title: "Choose your price range",
-                        description: "Filter the options based on your budget.",
-                      ),
-                      StepCard(
-                        step: "04",
-                        emoji: "👤",
-                        title: "Add to Wishlist",
-                        description: "Login to save your favorite breakfast spots and get personalized recommendations.",
-                      ),
-                    ],
-                  ),
-                ],
-              ),
             ),
 
             // Category Section
@@ -214,14 +166,14 @@ class HomePage extends StatelessWidget {
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          _buildCategoryItem('Nasi', 'assets/images/nasi.png'),
-          _buildCategoryItem('Roti', 'assets/images/roti.png'),
-          _buildCategoryItem('Lontong', 'assets/images/lontong.png'),
-          _buildCategoryItem('Cemilan', 'assets/images/cemilan.png'),
-          _buildCategoryItem('Minuman', 'assets/images/minuman.png'),
-          _buildCategoryItem('Mie', 'assets/images/mie.png'),
-          _buildCategoryItem('Sarapan Sehat', 'assets/images/telur.png'),
-          _buildCategoryItem('Bubur', 'assets/images/bubur.png'),
+          _buildCategoryItem('Nasi', 'assets/images/nasi.png', context),
+          _buildCategoryItem('Roti', 'assets/images/roti.png', context),
+          _buildCategoryItem('Lontong', 'assets/images/lontong.png', context),
+          _buildCategoryItem('Cemilan', 'assets/images/cemilan.png', context),
+          _buildCategoryItem('Minuman', 'assets/images/minuman.png', context),
+          _buildCategoryItem('Mie', 'assets/images/mie.png', context),
+          _buildCategoryItem('Sarapan Sehat', 'assets/images/telur.png', context),
+          _buildCategoryItem('Bubur', 'assets/images/bubur.png', context),
         ],
       ),
     );
@@ -236,130 +188,65 @@ class HomePage extends StatelessWidget {
       mainAxisSpacing: 20,
       crossAxisSpacing: 20,
       children: [
-        _buildCategoryItem('Nasi', 'assets/images/nasi.png'),
-        _buildCategoryItem('Roti', 'assets/images/roti.png'),
-        _buildCategoryItem('Lontong', 'assets/images/lontong.png'),
-        _buildCategoryItem('Cemilan', 'assets/images/cemilan.png'),
-        _buildCategoryItem('Minuman', 'assets/images/minuman.png'),
-        _buildCategoryItem('Mie', 'assets/images/mie.png'),
-        _buildCategoryItem('Sarapan Sehat', 'assets/images/telur.png'),
-        _buildCategoryItem('Bubur', 'assets/images/bubur.png'),
+        _buildCategoryItem('Nasi', 'assets/images/nasi.png', context),
+        _buildCategoryItem('Roti', 'assets/images/roti.png', context),
+        _buildCategoryItem('Lontong', 'assets/images/lontong.png', context),
+        _buildCategoryItem('Cemilan', 'assets/images/cemilan.png', context),
+        _buildCategoryItem('Minuman', 'assets/images/minuman.png', context),
+        _buildCategoryItem('Mie', 'assets/images/mie.png', context),
+        _buildCategoryItem('Sarapan Sehat', 'assets/images/telur.png', context),
+        _buildCategoryItem('Bubur', 'assets/images/bubur.png', context),
       ],
     );
   }
 
-  Widget _buildCategoryItem(String name, String imagePath) {
-    return Container(
-      width: 160,
-      padding: const EdgeInsets.all(10),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: AssetImage(imagePath),
-                fit: BoxFit.cover,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 4),
+  Widget _buildCategoryItem(String name, String imagePath, BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BrowseByCategoryPage(category: name),
+          ),
+        );
+      },
+      child: Container(
+        width: 160,
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                  image: AssetImage(imagePath),
+                  fit: BoxFit.cover,
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            name,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF333333),
-              fontFamily: 'Poppins',
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class StepCard extends StatelessWidget {
-  final String step;
-  final String emoji;
-  final String title;
-  final String description;
-
-  const StepCard({
-    super.key,
-    required this.step,
-    required this.emoji,
-    required this.title,
-    required this.description,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFAFAFA),
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            step,
-            style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFFFF5331),
-              fontFamily: 'Montserrat',
-            ),
-          ),
-          Container(
-            width: 60,
-            height: 60,
-            margin: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Center(
-              child: Text(
-                emoji,
-                style: const TextStyle(fontSize: 30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
             ),
-          ),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF191720),
-              fontFamily: 'Montserrat',
+            const SizedBox(height: 12),
+            Text(
+              name,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF333333),
+                fontFamily: 'Poppins',
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            description,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF676B6F),
-              fontFamily: 'Poppins',
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
