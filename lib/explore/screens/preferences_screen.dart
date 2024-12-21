@@ -9,6 +9,11 @@ import 'package:nyarap_at_depok_mobile/explore/screens/recommendation_list.dart'
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 
+extension StringExtension on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
+  }
+}
 
 class PreferencesScreen extends StatefulWidget {
   final String? username;
@@ -27,7 +32,8 @@ class PreferencesScreen extends StatefulWidget {
 class _PreferencesScreenState extends State<PreferencesScreen> {
   bool _isLoading = true;
   List<Preference>? _preferences;
-  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
 
   @override
   void initState() {
@@ -43,7 +49,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
     final request = context.read<CookieRequest>();
     try {
       final response = await request.get('http://localhost:8000/get_user_data/');
-      
+
       if (response['status'] == 'success') {
         final data = response['data'];
         if (data['preferences'] != null) {
@@ -235,8 +241,10 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                                     fields: Fields(
                                       user: pref.userId,
                                       preferredLocation: pref.preferredLocation,
-                                      preferredBreakfastType: pref.preferredBreakfastType,
-                                      preferredPriceRange: pref.preferredPriceRange,
+                                      preferredBreakfastType:
+                                          pref.preferredBreakfastType,
+                                      preferredPriceRange:
+                                          pref.preferredPriceRange,
                                       createdAt: DateTime.now(),
                                     ),
                                   ),
@@ -272,7 +280,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
   }
 }
 
-class PreferenceCard extends StatelessWidget {
+class PreferenceCard extends StatefulWidget {
   final Preference preference;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -287,97 +295,11 @@ class PreferenceCard extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Preferensi Sarapan',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                PopupMenuButton(
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      onTap: onEdit,
-                      child: const Row(
-                        children: [
-                          Icon(Icons.edit),
-                          SizedBox(width: 8),
-                          Text('Edit'),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      onTap: onDelete,
-                      child: const Row(
-                        children: [
-                          Icon(Icons.delete),
-                          SizedBox(width: 8),
-                          Text('Hapus'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            _buildPreferenceInfo('Kategori', _getDisplayBreakfastType(preference.preferredBreakfastType)),
-            _buildPreferenceInfo('Lokasi', _getDisplayLocation(preference.preferredLocation)),
-            _buildPreferenceInfo('Harga', _getDisplayPriceRange(preference.preferredPriceRange)),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: // Inside PreferenceCard widget, modify the ElevatedButton's onPressed callback:
+  _PreferenceCardState createState() => _PreferenceCardState();
+}
 
-ElevatedButton(
-  onPressed: () async {
-    // First save the preference
-    final Map<String, String> preferenceData = {
-      'location': preference.preferredLocation,
-      'breakfast_type': preference.preferredBreakfastType,
-      'price_range': preference.preferredPriceRange,
-    };
-    await onSave(preferenceData);
-
-    // Then navigate to recommendations list
-    if (context.mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => RecommendationsListPage(
-              recommendations: [], // You'll need to fetch recommendations first
-              preferences: {
-                'location': preference.preferredLocation,
-                'breakfast_type': preference.preferredBreakfastType,
-                'price_range': preference.preferredPriceRange,
-              },
-            ),
-          ),
-        );
-      }
-    },
-    style: ElevatedButton.styleFrom(
-      backgroundColor: Colors.orange,
-    ),
-    child: const Text('Gunakan Preferensi Ini'),
-  ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
+class _PreferenceCardState extends State<PreferenceCard> {
+  bool _isLoading = false;
 
   Widget _buildPreferenceInfo(String label, String value) {
     return Padding(
@@ -406,9 +328,12 @@ ElevatedButton(
   }
 
   String _getDisplayLocation(String location) {
-    return location.split('_').map((word) => word.capitalize()).join(' ');
-  }
-  
+    return location.split('_').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
+}
+
   String _getDisplayPriceRange(String range) {
     final Map<String, String> priceRanges = {
       '0-15000': 'Rp 0 - Rp 15.000',
@@ -418,6 +343,159 @@ ElevatedButton(
       '100000+': 'Rp 100.000+',
     };
     return priceRanges[range] ?? range;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Preferensi Sarapan',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                PopupMenuButton(
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      onTap: widget.onEdit,
+                      child: const Row(
+                        children: [
+                          Icon(Icons.edit),
+                          SizedBox(width: 8),
+                          Text('Edit'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      onTap: widget.onDelete,
+                      child: const Row(
+                        children: [
+                          Icon(Icons.delete),
+                          SizedBox(width: 8),
+                          Text('Hapus'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _buildPreferenceInfo('Kategori',
+                _getDisplayBreakfastType(widget.preference.preferredBreakfastType)),
+            _buildPreferenceInfo(
+                'Lokasi', _getDisplayLocation(widget.preference.preferredLocation)),
+            _buildPreferenceInfo('Harga',
+                _getDisplayPriceRange(widget.preference.preferredPriceRange)),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading
+                    ? null
+                    : () async {
+                        setState(() => _isLoading = true);
+                        try {
+                          // Save preferences
+                          final Map<String, String> preferenceData = {
+                            'location': widget.preference.preferredLocation,
+                            'breakfast_type':
+                                widget.preference.preferredBreakfastType,
+                            'price_range': widget.preference.preferredPriceRange,
+                          };
+                          await widget.onSave(preferenceData);
+
+                          // Get recommendations
+                          final request = context.read<CookieRequest>();
+                          final response = await request.post(
+                            'http://localhost:8000/api/recommendations/',
+                            jsonEncode({
+                              'breakfast_type':
+                                  widget.preference.preferredBreakfastType,
+                              'location': widget.preference.preferredLocation
+                                  .replaceAll('_', ' '),
+                              'price_range': widget.preference.preferredPriceRange,
+                            }),
+                          );
+
+                          if (!mounted) return;
+
+                          if (response['status'] == 'success') {
+                            final List<Recommendation> recommendations =
+                                (response['recommendations'] as List)
+                                    .map((json) => Recommendation.fromJson(json))
+                                    .toList();
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RecommendationsListPage(
+                                  recommendations: recommendations,
+                                  preferences: {
+                                    'location': _getDisplayLocation(
+                                        widget.preference.preferredLocation),
+                                    'breakfast_type': _getDisplayBreakfastType(
+                                        widget.preference.preferredBreakfastType),
+                                    'price_range': _getDisplayPriceRange(
+                                        widget.preference.preferredPriceRange),
+                                  },
+                                ),
+                              ),
+                            );
+                          } else {
+                            throw Exception(
+                                response['message'] ?? 'Failed to get recommendations');
+                          }
+                        } catch (e) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Terjadi kesalahan: $e')),
+                          );
+                        } finally {
+                          if (mounted) {
+                            setState(() => _isLoading = false);
+                          }
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Gunakan Preferensi Ini',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -438,4 +516,3 @@ class Preference {
     required this.createdAt,
   });
 }
-
