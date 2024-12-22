@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:nyarap_at_depok_mobile/home/login.dart';
 import 'package:nyarap_at_depok_mobile/home/register.dart';
+import 'package:nyarap_at_depok_mobile/explore/screens/preferences_screen.dart';
+import 'package:nyarap_at_depok_mobile/wishlist/screens/wishlist_screens.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:nyarap_at_depok_mobile/reviews/screens/review_list_screen.dart';
@@ -119,9 +121,34 @@ class LeftDrawer extends StatelessWidget {
                     icon: Icons.favorite_rounded,
                     title: 'Wishlist',
                     onTap: () {
-                      Navigator.pop(context);
+                      final request = Provider.of<CookieRequest>(context, listen: false);
+
+                      // Check if user is logged in
+                      if (request.loggedIn) {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const WishlistScreen(),
+                          ),
+                        );
+                      } else {
+                        // Show message and redirect to LoginPage
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Silakan login terlebih dahulu untuk melihat wishlist Anda'),
+                            backgroundColor: Colors.red[700],
+                          ),
+                        );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LoginPage(),
+                          ),
+                        );
+                      }
                     },
                   ),
+
 
                   _buildMenuItem(
                     context,

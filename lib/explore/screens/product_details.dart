@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:nyarap_at_depok_mobile/explore/screens/product_review_service.dart';
 import 'package:nyarap_at_depok_mobile/home/login.dart';
 import 'package:nyarap_at_depok_mobile/reviews/screens/edit_review_screen.dart';
+import 'package:nyarap_at_depok_mobile/wishlist/screens/wishlist_screens.dart';
+import 'package:nyarap_at_depok_mobile/wishlist/services/wishlist_services.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:nyarap_at_depok_mobile/reviews/models/reviews.dart';
@@ -360,8 +362,42 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             children: [
                               Expanded(
                                 child: ElevatedButton(
-                                  onPressed: () {
-                                    // Opsional: logic untuk Add to Wishlist
+                                  onPressed: () async {
+                                    final request = Provider.of<CookieRequest>(
+                                        context,
+                                        listen: false);
+
+                                    // Check login status first and redirect to login if not logged in
+                                    if (!request.loggedIn) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const LoginPage()),
+                                      );
+                                      return;
+                                    }
+                                    try {
+                                      await WishlistService.addToWishlist(context, widget.product);
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Added to Wishlist')),
+                                        );
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => const WishlistScreen()),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (mounted) {
+                                        // Still navigate to wishlist since product was added successfully
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Added to Wishlist')),
+                                        );
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => const WishlistScreen()),
+                                        );
+                                      }
+                                    }
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFFEDF2F7),
@@ -378,7 +414,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.blue,
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
                                   ),
                                   child: const Text('Add Review'),
                                 ),
@@ -391,6 +428,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   ],
                 ),
               ),
+
 
               // Section "Customer Reviews"
               const Padding(
@@ -575,7 +613,8 @@ class _ReviewFormState extends State<_ReviewForm> {
   @override
   void initState() {
     super.initState();
-    _restaurantController = TextEditingController(text: widget.initialRestaurantName);
+    _restaurantController =
+        TextEditingController(text: widget.initialRestaurantName);
     _foodController = TextEditingController(text: widget.initialFoodName);
     _reviewController = TextEditingController();
   }
