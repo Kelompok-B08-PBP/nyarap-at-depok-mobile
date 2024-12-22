@@ -461,86 +461,91 @@ void initState() {
                   _getDisplayPriceRange(userPrefs['price_range']),
                 ),
                 const SizedBox(height: 16),
-                // Di dalam _buildPreferencesButton
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : () async {
-                    setState(() => _isLoading = true);
-                    try {
-                      final request = context.read<CookieRequest>();
-                      final userPrefs = _preferences['preferences'];
-                      
-                      final response = await request.post(
-                        'http://localhost:8000/api/recommendations/',
-                        jsonEncode({
-                          'breakfast_type': userPrefs['breakfast_category'],
-                          'location': userPrefs['district_category'].replaceAll('_', ' '),
-                          'price_range': userPrefs['price_range'],
-                        }),
-                      );
-                      
-                      if (!mounted) return;
-                      if (response['status'] == 'success') {
-                        final String cacheKey = response['cache_key'];  // Ambil cache_key
-                        final List<Recommendation> recommendations =
-                            (response['recommendations'] as List)
-                                .map((json) => Recommendation.fromJson(json))
-                                .toList();
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : () async {
+                      setState(() => _isLoading = true);
+
+                      try {
+                        final request = context.read<CookieRequest>();
+                        final userPrefs = _preferences['preferences'];
                         
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RecommendationsListPage(
-                              recommendations: recommendations,
-                              preferences: {
-                                'location': _getDisplayLocation(userPrefs['district_category']),
-                                'breakfast_type': _getDisplayBreakfastType(userPrefs['breakfast_category']),
-                                'price_range': _getDisplayPriceRange(userPrefs['price_range']),
-                              },
-                              isAuthenticated: true,
-                              cacheKey: cacheKey,  // Teruskan cache_key
+                        // Get recommendations
+                        final recommendationsResponse = await request.post(
+                          'http://localhost:8000/api/recommendations/',
+                          jsonEncode({
+                            'breakfast_type': userPrefs['breakfast_category'],
+                            'location': userPrefs['district_category'].replaceAll('_', ' '),
+                            'price_range': userPrefs['price_range'],
+                          }),
+                        );
+
+                        if (!mounted) return;
+
+                        if (recommendationsResponse['status'] == 'success') {
+                          final String cacheKey = recommendationsResponse['cache_key'];
+                          final List<Recommendation> recommendations =
+                              (recommendationsResponse['recommendations'] as List)
+                                  .map((json) => Recommendation.fromJson(json))
+                                  .toList();
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RecommendationsListPage(
+                                recommendations: recommendations,
+                                preferences: {
+                                  'location': _getDisplayLocation(userPrefs['district_category']),
+                                  'breakfast_type': _getDisplayBreakfastType(userPrefs['breakfast_category']),
+                                  'price_range': _getDisplayPriceRange(userPrefs['price_range']),
+                                },
+                                isAuthenticated: widget.isAuthenticated,
+                                cacheKey: cacheKey,
+                              ),
+                            ),
+                          );
+                        } else {
+                          throw Exception(recommendationsResponse['message'] ?? 'Unknown error');
+                        }
+                      } catch (e) {
+                        if (!mounted) return;
+                        print('Error: $e');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Gagal terhubung ke server: $e')),
+                        );
+                      } finally {
+                        if (mounted) {
+                          setState(() => _isLoading = false);
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFCE181B),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'Gunakan Preferensi Ini',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
                             ),
                           ),
-                        );
-                      }
-                    } catch (e) {
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Terjadi kesalahan: $e')),
-                      );
-                    } finally {
-                      if (mounted) {
-                        setState(() => _isLoading = false);
-                      }
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFCE181B),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
                   ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                          'Gunakan Preferensi Ini',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                ),
-              )
+                )
               ],
             ),
           ),
