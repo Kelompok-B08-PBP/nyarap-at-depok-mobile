@@ -5,7 +5,7 @@ import 'package:logging/logging.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 
 class ReviewService {
-  final String baseUrl = 'http://localhost:8000/review';
+  final String baseUrl = 'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/review';
   final _logger = Logger('ReviewService');
   final CookieRequest request;  // Add this
 
