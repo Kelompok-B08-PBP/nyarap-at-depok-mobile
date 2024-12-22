@@ -80,7 +80,7 @@ void initState() {
       final userPrefs = _preferences['preferences'];
       
       final response = await request.post(
-        'http://localhost:8000/api/recommendations/',
+        'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/api/recommendations/',
         jsonEncode({
           'breakfast_type': userPrefs['breakfast_category'],
           'location': userPrefs['district_category'].replaceAll('_', ' '),
@@ -131,7 +131,7 @@ void initState() {
       final request = context.read<CookieRequest>();
       
       final response = await request.post(
-        'http://localhost:8000/api/recommendations/',
+        'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/api/recommendations/',
         jsonEncode({
           'breakfast_type': 'lontong',
           'location': 'beji',
@@ -174,7 +174,7 @@ void initState() {
 
   try {
     final request = context.read<CookieRequest>();
-    final response = await request.get('http://localhost:8000/get_user_data/');
+    final response = await request.get('http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/get_user_data/');
     
     if (response['status'] == 'success' && mounted) {
       final userData = response['data'];
@@ -213,7 +213,7 @@ void initState() {
   
   try {
     final response = await request.post(
-      'http://localhost:8000/api/preferences/delete/',
+      'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/api/preferences/delete/',
       {},
     );
 
@@ -253,7 +253,7 @@ void initState() {
     final request = context.read<CookieRequest>();
     try {
       final response = await request.post(
-        'http://localhost:8000/api/preferences/save/',
+        'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/api/preferences/save/',
         jsonEncode({
           'preferred_location': data['location'],
           'preferred_breakfast_type': data['breakfast_type'],
@@ -287,7 +287,7 @@ void initState() {
       final userPrefs = _preferences['preferences'];
 
       final response = await request.post(
-        'http://localhost:8000/api/recommendations/',
+        'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/api/recommendations/',
         {
           'breakfast_type': userPrefs['breakfast_category'],
           'location': userPrefs['district_category'].replaceAll('_', ' '),
@@ -473,7 +473,7 @@ void initState() {
                         
                         // Get recommendations
                         final recommendationsResponse = await request.post(
-                          'http://localhost:8000/api/recommendations/',
+                          'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/api/recommendations/',
                           jsonEncode({
                             'breakfast_type': userPrefs['breakfast_category'],
                             'location': userPrefs['district_category'].replaceAll('_', ' '),

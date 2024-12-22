@@ -173,7 +173,7 @@ class _AddReviewDialogState extends State<AddReviewDialog> {
                             if (_formKey.currentState?.validate() ?? false) {
                               try {
                                 // Get user ID dari Django session
-                                final userInfo = await request.get('http://localhost:8000/get_user_data/');
+                                final userInfo = await request.get('http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/get_user_data/');
                                 final userId = userInfo['data']['user']['id'] as int; 
 
                                 final fields = Fields(

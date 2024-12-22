@@ -56,7 +56,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
     
     try {
       final request = context.read<CookieRequest>();
-      final response = await request.get('http://localhost:8000/get_user_data/');
+      final response = await request.get('http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/get_user_data/');
 
       if (!mounted) return;
 
@@ -101,7 +101,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
     
     try {
       final response = await request.post(
-        'http://localhost:8000/api/preferences/delete/',
+        'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/api/preferences/delete/',
         {},
       );
 
@@ -138,7 +138,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
     try {
       final request = context.read<CookieRequest>();
       final response = await request.post(
-        'http://localhost:8000/api/preferences/save/',
+        'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/api/preferences/save/',
         jsonEncode({
           'preferred_location': data['location'],
           'preferred_breakfast_type': data['breakfast_type'],
@@ -447,7 +447,7 @@ class _PreferenceCardState extends State<PreferenceCard> {
                           // Get recommendations
                           final request = context.read<CookieRequest>();
                           final response = await request.post(
-                            'http://localhost:8000/api/recommendations/',
+                            'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/api/recommendations/',
                             jsonEncode({
                               'breakfast_type':
                                   widget.preference.preferredBreakfastType,

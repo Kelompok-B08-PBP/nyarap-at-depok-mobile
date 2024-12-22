@@ -320,7 +320,7 @@ class RecommendationsListPage extends StatelessWidget {
 
                             final request = context.read<CookieRequest>();
                             try {
-                              final response = await request.get('http://localhost:8000/get_user_data/');
+                              final response = await request.get('http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/get_user_data/');
                               
                               if (response['status'] == 'success') {
                                 if (!context.mounted) return;
