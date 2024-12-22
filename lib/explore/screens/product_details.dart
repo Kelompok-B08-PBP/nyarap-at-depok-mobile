@@ -1,3 +1,4 @@
+
 // product_details_screen.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -40,6 +41,8 @@ class ProductDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final request = Provider.of<CookieRequest>(context, listen: false);
+
     return Scaffold(
       body: FutureBuilder<Map<String, dynamic>>(
         future: fetchProductDetails(),
@@ -68,6 +71,7 @@ class ProductDetailsScreen extends StatelessWidget {
                               ),
                             ],
                           ),
+
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 8,
@@ -107,6 +111,7 @@ class ProductDetailsScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+
                           // Product Image and Category
                           Stack(
                             children: [
@@ -153,7 +158,9 @@ class ProductDetailsScreen extends StatelessWidget {
                                 ),
                               ),
                             ],
+
                           ),
+
 
                           // Product Content
                           Padding(
@@ -169,6 +176,14 @@ class ProductDetailsScreen extends StatelessWidget {
                                     fontWeight: FontWeight.w700,
                                     color: Color(0xFF1A1A1A),
                                   ),
+
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
@@ -212,7 +227,11 @@ class ProductDetailsScreen extends StatelessWidget {
                                     ),
                                     const SizedBox(width: 12),
                                     Text(
+
                                       product['display_price'] ?? '',
+
+                                      '${_product['rating']}',
+
                                       style: const TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.w700,
@@ -221,6 +240,7 @@ class ProductDetailsScreen extends StatelessWidget {
                                     ),
                                   ],
                                 ),
+
 
                                 // Info Grid
                                 Container(
@@ -261,32 +281,87 @@ class ProductDetailsScreen extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-                                ),
 
-                                // Action Buttons
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: ElevatedButton(
-                                        onPressed: () {
-                                          // Add to wishlist logic
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color(0xFFEDF2F7),
-                                          foregroundColor: const Color(0xFF2D3748),
-                                          padding: const EdgeInsets.symmetric(vertical: 10),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(10),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                _product['display_price'] ?? '',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF2D3748),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          
+                       
+
+                          // Action Buttons
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  // In the ElevatedButton onPressed callback:
+                                  onPressed: () async {
+                                    print(
+                                        'Add to wishlist button pressed'); // Debug log
+                                    print('Add to wishlist button pressed');
+                                    print(_product);
+                                    final productId = _product['product_id'];
+                                    print(_product); // Try this field name
+                                    if (productId != null) {
+                                      final success =
+                                          await WishlistService.addToWishlist(
+                                        context,
+                                        _product,
+                                      );
+
+                                      print(
+                                          'Wishlist operation result: $success'); // Debug log
+
+                                      if (success) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                                '${_product['name']} added to wishlist'),
+                                            backgroundColor: Colors.green,
                                           ),
-                                        ),
-                                        child: Text(
-                                          product['is_in_wishlist'] ?? false
-                                              ? 'Remove from Wishlist'
-                                              : 'Add to Wishlist',
-                                        ),
-                                      ),
+                                        );
+                                        setState(() {
+                                          _product['is_in_wishlist'] = true;
+                                        });
+                                      } else {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'Failed to add to wishlist'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    } else {
+                                      print('Product ID is null'); // Debug log
+                                    }
+                                  },
+
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFEDF2F7),
+                                    foregroundColor: const Color(0xFF2D3748),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
-                                  ],
+                                  ),
+                                  child: Text(
+                                    _product['is_in_wishlist'] ?? false
+                                        ? 'Remove from Wishlist'
+                                        : 'Add to Wishlist',
+                                  ),
                                 ),
                               ],
                             ),

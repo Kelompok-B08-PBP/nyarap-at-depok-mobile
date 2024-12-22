@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:nyarap_at_depok_mobile/home/login.dart';
 import 'package:nyarap_at_depok_mobile/home/register.dart';
+import 'package:nyarap_at_depok_mobile/explore/screens/preferences_screen.dart';
+import 'package:nyarap_at_depok_mobile/wishlist/screens/wishlist_screens.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:nyarap_at_depok_mobile/reviews/screens/review_list_screen.dart';
@@ -96,6 +98,7 @@ class LeftDrawer extends StatelessWidget {
                     ),
                   ),
 
+
                   _buildMenuItem(
                     context,
                     icon: Icons.home_rounded,
@@ -104,6 +107,26 @@ class LeftDrawer extends StatelessWidget {
                       Navigator.pop(context);
                     },
                   ),
+
+            ListTile(
+              leading: const Icon(Icons.favorite_border),
+              title: const Text(
+                'Wishlist',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontFamily: 'Montserrat',
+                ),
+              ),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => WishlistScreen(), 
+                  ),
+                );
+              },
+            ),
+
 
                   _buildMenuItem(
                     context,
