@@ -58,7 +58,7 @@ Pengguna dapat melihat informasi lengkap terkait tempat sarapan, termasuk menu, 
 Dikerjakan oleh Dhafin Putra Nugraha
 
 ### 4. Nyarap Nanti ❤️ (Wishlist)
-Pengguna dapat menyimpan tempat sarapan favorit ke dalam wishlist pribadi dan mengelompokkan tempat favorit ke dalam fitur Collection, yang memudahkan pengaturan dan pencarian tempat sarapan berdasarkan kategori yang telah dibuat.
+Pengguna dapat dengan mudah menyimpan tempat sarapan favorit mereka ke dalam wishlist pribadi, lengkap dengan fitur untuk menambahkan catatan khusus pada setiap tempat favorit mereka.
 Dikerjakan oleh Alisha Aline Athiyyah
 
 ### 5. Nyarap Ulasan 📝 (Reviews)

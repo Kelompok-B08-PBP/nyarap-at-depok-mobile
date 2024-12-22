@@ -1,5 +1,4 @@
 import 'package:nyarap_at_depok_mobile/reviews/models/reviews.dart';
-import 'package:nyarap_at_depok_mobile/explore/models/recommendation.dart';
 import 'dart:convert';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:logging/logging.dart';

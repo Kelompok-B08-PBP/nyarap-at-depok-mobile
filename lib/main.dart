@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:nyarap_at_depok_mobile/detailer.dart';
 import 'package:nyarap_at_depok_mobile/home/home_page.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
