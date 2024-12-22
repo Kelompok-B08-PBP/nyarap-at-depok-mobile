@@ -7,6 +7,7 @@ import 'package:nyarap_at_depok_mobile/explore/models/explore.dart';
 import 'package:nyarap_at_depok_mobile/explore/models/recommendation.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:nyarap_at_depok_mobile/details/screens/browse_category.dart';
 import 'dart:convert';
 
 class HomePage extends StatefulWidget {
@@ -554,38 +555,48 @@ void initState() {
     );
   }
 
-  Widget _buildCategoryItem(String title, String imagePath) {
-  return Container(
-    width: 70,
-    margin: const EdgeInsets.only(right: 16),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage(imagePath),
-              fit: BoxFit.cover,
+  Widget _buildCategoryItem(String title, String imagePath, BuildContext context) {
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => BrowseByCategoryPage(category: title),
+        ),
+      );
+    },
+    child: Container(
+      width: 70,
+      margin: const EdgeInsets.only(right: 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(imagePath),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Color(0xFF121212),
-            fontSize: 14,
-            fontFamily: 'Plus Jakarta Sans',
-            fontWeight: FontWeight.w500,
-            letterSpacing: -0.28,
+          const SizedBox(height: 12),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xFF121212),
+              fontSize: 14,
+              fontFamily: 'Plus Jakarta Sans',
+              fontWeight: FontWeight.w500,
+              letterSpacing: -0.28,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     ),
   );
 }
@@ -742,14 +753,14 @@ Widget build(BuildContext context) {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildCategoryItem('Nasi', 'assets/images/nasi.png'),
-                      _buildCategoryItem('Cemilan', 'assets/images/cemilan.png'),
-                      _buildCategoryItem('Lontong', 'assets/images/lontong.png'),
-                      _buildCategoryItem('Makanan Berat', 'assets/images/makanan_berat.png'),
-                      _buildCategoryItem('Mie', 'assets/images/mie.png'),
-                      _buildCategoryItem('Minuman', 'assets/images/minuman.png'),
-                      _buildCategoryItem('Roti', 'assets/images/roti.png'),
-                      _buildCategoryItem('Bubur', 'assets/images/bubur.png'),
+                      _buildCategoryItem('Nasi', 'assets/images/nasi.png', context),
+                      _buildCategoryItem('Cemilan', 'assets/images/cemilan.png', context),
+                      _buildCategoryItem('Lontong', 'assets/images/lontong.png', context),
+                      _buildCategoryItem('Makanan Berat', 'assets/images/makanan_berat.png', context),
+                      _buildCategoryItem('Mie', 'assets/images/mie.png', context),
+                      _buildCategoryItem('Minuman', 'assets/images/minuman.png', context),
+                      _buildCategoryItem('Roti', 'assets/images/roti.png', context),
+                      _buildCategoryItem('Bubur', 'assets/images/bubur.png', context),
                     ],
                   ),
                 ),
