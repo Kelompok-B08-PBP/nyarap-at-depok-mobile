@@ -17,7 +17,7 @@ class WishlistScreen extends StatefulWidget {
 class _WishlistScreenState extends State<WishlistScreen> {
   final TextEditingController _noteController = TextEditingController();
   
-  static const String baseUrl = "http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id0";
+  static const String baseUrl = "http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id";
 
   Future<List<dynamic>> fetchWishlist(BuildContext context) async {
     final request = Provider.of<CookieRequest>(context, listen: false);

@@ -6,6 +6,7 @@ import 'package:nyarap_at_depok_mobile/wishlist/screens/wishlist_screens.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:nyarap_at_depok_mobile/reviews/screens/review_list_screen.dart';
+import 'package:nyarap_at_depok_mobile/community/screens/community_page.dart';
 
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
@@ -113,6 +114,12 @@ class LeftDrawer extends StatelessWidget {
                     title: 'Community',
                     onTap: () {
                       Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CommunityPage(),
+                        ),
+                      );
                     },
                   ),
 
