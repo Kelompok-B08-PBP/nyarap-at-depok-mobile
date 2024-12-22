@@ -20,6 +20,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   void initState() {
     super.initState();
     _product = Map<String, dynamic>.from(widget.product);
+
+    // Tambahkan fallback untuk product_id jika belum ada
+    if (!_product.containsKey('product_id')) {
+      _product['product_id'] = widget.product['id'] ??
+          DateTime.now().millisecondsSinceEpoch; // Fallback ID sementara
+    }
   }
 
   @override
@@ -246,23 +252,18 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             children: [
                               Expanded(
                                 child: ElevatedButton(
-                                  // In the ElevatedButton onPressed callback:
                                   onPressed: () async {
-                                    print(
-                                        'Add to wishlist button pressed'); // Debug log
                                     print('Add to wishlist button pressed');
-                                    print(_product);
+                                    print('Product: $_product');
                                     final productId = _product['product_id'];
-                                    print(_product); // Try this field name
+                                    print('Product ID: $productId'); // Debug log
+
                                     if (productId != null) {
                                       final success =
                                           await WishlistService.addToWishlist(
                                         context,
                                         _product,
                                       );
-
-                                      print(
-                                          'Wishlist operation result: $success'); // Debug log
 
                                       if (success) {
                                         ScaffoldMessenger.of(context)
@@ -287,10 +288,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                         );
                                       }
                                     } else {
-                                      print('Product ID is null'); // Debug log
+                                      print('Product ID is null');
                                     }
                                   },
-
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFFEDF2F7),
                                     foregroundColor: const Color(0xFF2D3748),
