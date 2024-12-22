@@ -6,34 +6,31 @@ class WishlistService {
   static const String baseUrl = "http://localhost:8000";
 
   static Future<bool> addToWishlist(BuildContext context, Map<String, dynamic> product) async {
-    final request = Provider.of<CookieRequest>(context, listen: false);
-    print('Starting addToWishlist with product: ${product['id']}'); // Debug log
+  final request = Provider.of<CookieRequest>(context, listen: false);
+  try {
+    final url = '$baseUrl/wishlist/add/${product['id']}/';
+    // print('Product ID being sent: ${product['id']}'); // Debug print
+    // print('Full product data: $product'); // Debug print
     
-    try {
-      final url = '$baseUrl/wishlist/add/${product['id']}/';
-      print('Making request to: $url'); // Debug log
-
-      final response = await request.post(
-        url,
-        {
-          'name': product['name'],
-          'restaurant': product['restaurant'],
-          'category': product['category'],
-          'location': product['location'],
-          'price': product['price'].toString(),
-          'rating': product['rating'].toString(),
-          'operational_hours': product['operational_hours'],
-          'image_url': product['image_url'],
-        },
-      );
-      
-      print('Response received: $response'); // Debug log
-      return response['status'] == 'success';
-    } catch (e) {
-      print('Error in addToWishlist: $e'); // Debug log
-      return false;
-    }
+    final response = await request.post(
+      url,
+      {
+        'name': product['name'],
+        'restaurant': product['restaurant'],
+        'category': product['category'],
+        'location': product['location'],
+        'price': product['price'].toString(),
+        'rating': product['rating'].toString(),
+        'operational_hours': product['operational_hours'],
+        'image_url': product['image_url'],
+      },
+    );
+    
+    // print('Response from server: $response'); // Debug print
+    return response['status'] == 'success';
+  } catch (e) {
+    // print('Error adding to wishlist: $e');
+    return false;
   }
-
-
+}
 }
