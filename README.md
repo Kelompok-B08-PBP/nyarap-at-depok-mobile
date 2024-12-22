@@ -1,5 +1,5 @@
 # Nyarap @Depok🍳 Mobile
-### Tautan APK : https://install.appcenter.ms/orgs/Kelompok-PBP-B08/apps/Nyarap-at-Depok/releases/4
+### Tautan APK : https://install.appcenter.ms/orgs/kelompok-pbp-b08/apps/nyarap-at-depok/distribution_groups/public
 ### Video Promosi : ristek.link/Nyarap@DepokPBP
 
 
