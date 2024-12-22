@@ -216,6 +216,7 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
                   'price_range': priceRanges[_selectedPriceRange]!['label'],
                 },
                 cacheKey: cacheKey,
+                isAuthenticated: widget.isAuthenticated,
               ),
             ),
           );

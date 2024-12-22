@@ -32,44 +32,46 @@ class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>>? _recommendations;
   bool _isLoading = false;
   String? _cacheKey;  
-
-  // Default recommendations that will show when there are no preferences
-  final defaultRecommendations = [
-    {
-      'imageUrl': 'https://sarahsvegankitchen.com/wp-content/uploads/2024/05/Vegan-Croissants-1.jpg',
-      'name': 'Cemilan Croissant',
-      'restaurant': 'Animo Bakery Depok',
-      'rating': 4.7,
-      'kecamatan': 'Beji',
-      'operationalHours': '7.00 am',
-      'price': 'Rp 20.000',
-      'kategori': 'Bakery',
-    },
-    {
-      'imageUrl': 'https://i.gojekapi.com/darkroom/gofood-indonesia/v2/images/uploads/f9dcfb8b-e73c-4653-9767-6a6e8fc5a813_Go-Biz_20230208_042205.jpeg',
-      'name': 'Bubur Ayam',
-      'restaurant': 'Bubur Ayam Sinar Garut',
-      'rating': 4.5,
-      'kecamatan': 'Beji',
-      'operationalHours': '5.00 am',
-      'price': 'Rp 13.000',
-      'kategori': 'Bubur',
-    },
-  ];
+  List<Map<String, dynamic>>? _defaultRecommendations;
 
   @override
-  void initState() {
-    super.initState();
-    
-    if (widget.preferences.isNotEmpty && widget.recommendations != null) {
-      setState(() {
-        _preferences = widget.preferences;
-        _recommendations = widget.recommendations;
-      });
-    } else if (widget.isAuthenticated) {
-      _fetchUserData();
-    }
+void initState() {
+  super.initState();
+  
+  // Prioritaskan preferences dan recommendations dari widget
+  if (widget.preferences.isNotEmpty && widget.recommendations != null) {
+    setState(() {
+      _preferences = widget.preferences;
+      _recommendations = widget.recommendations;
+      // Ambil cache_key dari preferences jika ada
+      _cacheKey = widget.preferences['preferences']?['cache_key'];
+    });
+  } else if (widget.isAuthenticated) {
+    _fetchUserData();
+  } else {
+    // Hanya fetch default recommendations jika user tidak authenticated
+    _fetchDefaultRecommendations();
   }
+}
+
+  bool _shouldShowDefaultRecommendations() {
+  // Jika user punya preferences dan recommendations, jangan tampilkan default
+  if (_preferences.containsKey('preferences') && 
+      _preferences['preferences'] != null && 
+      _recommendations != null && 
+      _recommendations!.isNotEmpty) {
+    return false;
+  }
+  
+  // Jika user belum login atau belum punya preferences, tampilkan default
+  return !widget.isAuthenticated || 
+         !_preferences.containsKey('preferences') || 
+         _preferences['preferences'] == null ||
+         _recommendations == null || 
+         _recommendations!.isEmpty;
+}
+
+  
 
   void _onUsePreferences() async {
     setState(() => _isLoading = true);
@@ -121,39 +123,43 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-
-  Future<void> _fetchUserData() async {
+  Future<void> _fetchDefaultRecommendations() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
 
     try {
       final request = context.read<CookieRequest>();
-      final response = await request.get('http://localhost:8000/get_user_data/');
       
-      if (response['status'] == 'success' && mounted) {
-        final userData = response['data'];
-        final username = userData['user']['username'];
-        final preferences = userData['preferences'];
-        
-        if (preferences != null) {
-          setState(() {
-            _preferences = {
-              'username': username,
-              'preferences': preferences,
-            };
-          });
+      final response = await request.post(
+        'http://localhost:8000/api/recommendations/',
+        jsonEncode({
+          'breakfast_type': 'lontong',
+          'location': 'beji',
+          'price_range': '0-15000',
+        }),
+      );
 
-          await _fetchRecommendations();
-        } else {
-          setState(() {
-            _preferences = {
-              'username': username,
-            };
-          });
-        }
+      if (!mounted) return;
+      if (response['status'] == 'success') {
+        setState(() {
+          _cacheKey = response['cache_key'];
+          _defaultRecommendations = List<Map<String, dynamic>>.from( // Diubah dari _recommendations menjadi _defaultRecommendations
+            response['recommendations'].map((item) => {
+              'id': item['id'],
+              'imageUrl': item['image_url'],
+              'name': item['name'],
+              'restaurant': item['restaurant'],
+              'rating': double.parse(item['rating'].toString()),
+              'kecamatan': item['location'],
+              'operationalHours': item['operational_hours'],
+              'price': item['price'],
+              'kategori': 'lontong',
+            })
+          );
+        });
       }
     } catch (e) {
-      print('Error in _fetchUserData: $e');
+      print('Error fetching default recommendations: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -161,36 +167,87 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _deletePreference() async {
-    final request = context.read<CookieRequest>();
-    try {
-      final response = await request.post(
-        'http://localhost:8000/api/preferences/delete/',
-        {},
-      );
 
-      if (response['status'] == 'success') {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Preferensi berhasil dihapus')),
-          );
-          
-          // Clear preferences and recommendations, keeping only username
-          setState(() {
-            _preferences = {'username': _preferences['username']};
-            _recommendations = null;
-          });
-        }
-      }
-    } catch (e) {
-      print('Error deleting preference: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal menghapus preferensi')),
-        );
+  Future<void> _fetchUserData() async {
+  if (!mounted) return;
+  setState(() => _isLoading = true);
+
+  try {
+    final request = context.read<CookieRequest>();
+    final response = await request.get('http://localhost:8000/get_user_data/');
+    
+    if (response['status'] == 'success' && mounted) {
+      final userData = response['data'];
+      final username = userData['user']['username'];
+      final preferences = userData['preferences'];
+      
+      setState(() {
+        _preferences = {
+          'username': username,
+          'preferences': preferences,  // Set preferences even if null
+        };
+      });
+
+      if (preferences != null) {
+        await _fetchRecommendations();
+      } else {
+        // If no preferences, fetch default recommendations
+        await _fetchDefaultRecommendations();
       }
     }
+  } catch (e) {
+    print('Error in _fetchUserData: $e');
+    // On error, try to fetch default recommendations
+    await _fetchDefaultRecommendations();
+  } finally {
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
+}
+
+  // Modifikasi _deletePreference untuk memastikan default recommendations muncul:
+  Future<void> _deletePreference() async {
+  final request = context.read<CookieRequest>();
+  setState(() => _isLoading = true);
+  
+  try {
+    final response = await request.post(
+      'http://localhost:8000/api/preferences/delete/',
+      {},
+    );
+
+    if (response['status'] == 'success') {
+      if (mounted) {
+        setState(() {
+          _preferences = {
+            'username': _preferences['username'],
+            'preferences': null,  // Explicitly set to null
+          };
+          _recommendations = null;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Preferensi berhasil dihapus')),
+        );
+        
+        // Fetch default recommendations after clearing preferences
+        await _fetchDefaultRecommendations();
+      }
+    }
+  } catch (e) {
+    print('Error deleting preference: $e');
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal menghapus preferensi')),
+      );
+    }
+  } finally {
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
+}
 
   Future<void> _savePreference(Map<String, String> data) async {
     final request = context.read<CookieRequest>();
@@ -560,83 +617,148 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final isSmallScreen = screenSize.width < 600;
+  @override
+Widget build(BuildContext context) {
+  final screenSize = MediaQuery.of(context).size;
+  final isSmallScreen = screenSize.width < 600;
 
-    return Scaffold(
-      appBar: _buildAppBar(context),
-      drawer: const LeftDrawer(),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildHeroSection(context, isSmallScreen, screenSize),
-            if (widget.isAuthenticated) ...[
-              // Show loading indicator while fetching data
-              if (_isLoading)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: CircularProgressIndicator(),
+  return Scaffold(
+    appBar: _buildAppBar(context),
+    drawer: const LeftDrawer(),
+    body: SingleChildScrollView(
+      child: Column(
+        children: [
+          _buildHeroSection(context, isSmallScreen, screenSize),
+          
+          // Loading indicator
+          if (_isLoading)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          
+          // Preferences section
+          // Ubah kondisi ini untuk memastikan preferences card muncul
+          if (_preferences.containsKey('preferences') && 
+              _preferences['preferences'] != null)
+            _buildPreferencesButton(context),
+            
+          // Recommendations section
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Special For You',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Plus Jakarta Sans',
                   ),
                 ),
-              // Only show preferences section if preferences exist
-              if (_preferences.containsKey('preferences') && _preferences['preferences'] != null)
-                _buildPreferencesButton(context),
-              // Show either user recommendations or default recommendations
-              _buildRecommendationSection(
-                _preferences.containsKey('preferences') && _recommendations != null && _recommendations!.isNotEmpty
-                    ? _recommendations!
-                    : defaultRecommendations,
-                'Special For You',
-                screenSize,
-              ),
-            ] else
-              _buildRecommendationSection(
-                defaultRecommendations,
-                'Special For You',
-                screenSize,
-              ),
-              Container(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Browse by Category',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: 'Plus Jakarta Sans',
-                        color: Color(0xFF121212),
-                        letterSpacing: -0.40,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _buildCategoryItem('Nasi', 'assets/images/nasi.png'),
-                          _buildCategoryItem('Cemilan', 'assets/images/cemilan.png'),
-                          _buildCategoryItem('Lontong', 'assets/images/lontong.png'),
-                          _buildCategoryItem('Makanan Berat', 'assets/images/makanan_berat.png'),
-                          _buildCategoryItem('Mie', 'assets/images/mie.png'),
-                          _buildCategoryItem('Minuman', 'assets/images/minuman.png'),
-                          _buildCategoryItem('Roti', 'assets/images/roti.png'),
-                          _buildCategoryItem('Bubur', 'assets/images/bubur.png'),
-                        ],
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 16),
+                if (_isLoading)
+                  const Center(child: CircularProgressIndicator())
+                else
+                  SizedBox(
+                    height: 320,
+                    child: _recommendations != null && _recommendations!.isNotEmpty
+                      ? ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: _recommendations!.length,
+                          itemBuilder: (context, index) {
+                            final item = _recommendations![index];
+                            return Container(
+                              width: screenSize.width * 0.6,
+                              margin: const EdgeInsets.only(right: 16),
+                              child: ProductCard(
+                                id: item['id'] ?? (index + 1).toString(),
+                                imageUrl: item['imageUrl'],
+                                name: item['name'],
+                                restaurant: item['restaurant'],
+                                rating: item['rating'].toDouble(),
+                                kecamatan: item['kecamatan'],
+                                operationalHours: item['operationalHours'],
+                                price: item['price'],
+                                kategori: item['kategori'],
+                                cacheKey: _cacheKey ?? '',
+                              ),
+                            );
+                          },
+                        )
+                      : ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: _defaultRecommendations?.length ?? 0,
+                          itemBuilder: (context, index) {
+                            final item = _defaultRecommendations![index];
+                            return Container(
+                              width: screenSize.width * 0.6,
+                              margin: const EdgeInsets.only(right: 16),
+                              child: ProductCard(
+                                id: item['id'] ?? (index + 1).toString(),
+                                imageUrl: item['imageUrl'],
+                                name: item['name'],
+                                restaurant: item['restaurant'],
+                                rating: item['rating'].toDouble(),
+                                kecamatan: item['kecamatan'],
+                                operationalHours: item['operationalHours'],
+                                price: item['price'],
+                                kategori: item['kategori'],
+                                cacheKey: _cacheKey ?? '',
+                              ),
+                            );
+                          },
+                        ),
+                  ),
+              ],
+            ),
+          ),
+          // Browse by Category section
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Browse by Category',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'Plus Jakarta Sans',
+                    color: Color(0xFF121212),
+                    letterSpacing: -0.40,
+                  ),
                 ),
-              ),
-              _buildHowNyarapWorks(),
-            ],
-          ),    
-        ),
-      );
-  }
+                const SizedBox(height: 20),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildCategoryItem('Nasi', 'assets/images/nasi.png'),
+                      _buildCategoryItem('Cemilan', 'assets/images/cemilan.png'),
+                      _buildCategoryItem('Lontong', 'assets/images/lontong.png'),
+                      _buildCategoryItem('Makanan Berat', 'assets/images/makanan_berat.png'),
+                      _buildCategoryItem('Mie', 'assets/images/mie.png'),
+                      _buildCategoryItem('Minuman', 'assets/images/minuman.png'),
+                      _buildCategoryItem('Roti', 'assets/images/roti.png'),
+                      _buildCategoryItem('Bubur', 'assets/images/bubur.png'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // How Nyarap Works section
+          _buildHowNyarapWorks(),
+        ],
+      ),
+    ),
+  );
+}
 
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
@@ -1159,36 +1281,36 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 16),
-          GridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: MediaQuery.of(context).size.width > 600 ? 0.8 : 0.7,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
+          SizedBox(
+            height: 280, // Adjust height as needed
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return Container(
+                  width: screenSize.width * 0.6,
+                  margin: const EdgeInsets.only(right: 16),
+                  child: ProductCard(
+                    id: item['id'] ?? (index + 1).toString(),
+                    imageUrl: item['imageUrl'],
+                    name: item['name'],
+                    restaurant: item['restaurant'],
+                    rating: item['rating'].toDouble(),
+                    kecamatan: item['kecamatan'],
+                    operationalHours: item['operationalHours'],
+                    price: item['price'],
+                    kategori: item['kategori'],
+                    cacheKey: _cacheKey ?? '',
+                  ),
+                );
+              },
             ),
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return ProductCard(
-                id: item['id'] ?? (index + 1).toString(),  // Gunakan ID dari recommendation jika ada
-                imageUrl: item['imageUrl'],
-                name: item['name'],
-                restaurant: item['restaurant'],
-                rating: item['rating'].toDouble(),
-                kecamatan: item['kecamatan'],
-                operationalHours: item['operationalHours'],
-                price: item['price'],
-                kategori: item['kategori'],
-                cacheKey: _cacheKey ?? '',  // Gunakan cache_key yang disimpan
-              );
-            },
           ),
         ],
       ),
     );
-  
+
   
   }
 }
