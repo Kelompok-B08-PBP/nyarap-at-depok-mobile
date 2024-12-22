@@ -8,7 +8,6 @@ class Recommendation {
   final String imageUrl;
   final String location;
   final String operationalHours;
-
   String productCategory;
 
 

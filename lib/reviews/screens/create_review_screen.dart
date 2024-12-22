@@ -1,24 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:nyarap_at_depok_mobile/reviews/models/reviews.dart';
 import 'package:nyarap_at_depok_mobile/reviews/screens/review_service.dart';
-import 'package:provider/provider.dart';
-import 'package:pbp_django_auth/pbp_django_auth.dart';
 
 class AddReviewDialog extends StatefulWidget {
   final Function() onReviewAdded;
-  final ReviewService reviewService;
-  // Make these optional
-  final String? productId;
-  final String? restaurantName;
-  final String? foodName;
+  final ReviewService reviewService;  
 
   const AddReviewDialog({
     super.key,
     required this.onReviewAdded,
-    required this.reviewService,
-    this.productId,
-    this.restaurantName,
-    this.foodName,
+    required this.reviewService,  // Add this
   });
   
   @override
@@ -28,26 +19,10 @@ class AddReviewDialog extends StatefulWidget {
 class _AddReviewDialogState extends State<AddReviewDialog> {
   final _formKey = GlobalKey<FormState>();
   
-  late TextEditingController _restaurantNameController;
-  late TextEditingController _foodNameController;
-  final TextEditingController _reviewController = TextEditingController();
+  String _restaurantName = '';
+  String _foodName = '';
+  String _review = '';
   int _rating = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize controllers with pre-filled data if available
-    _restaurantNameController = TextEditingController(text: widget.restaurantName ?? '');
-    _foodNameController = TextEditingController(text: widget.foodName ?? '');
-  }
-
-  @override
-  void dispose() {
-    _restaurantNameController.dispose();
-    _foodNameController.dispose();
-    _reviewController.dispose();
-    super.dispose();
-  }
 
   Widget _buildRatingSelector() {
     return Row(
@@ -71,8 +46,6 @@ class _AddReviewDialogState extends State<AddReviewDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final request = context.watch<CookieRequest>();
-    
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
@@ -89,7 +62,6 @@ class _AddReviewDialogState extends State<AddReviewDialog> {
                 fontSize: 24,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF1F2937),
-                fontFamily: 'Montserrat',
               ),
             ),
             const SizedBox(height: 24),
@@ -99,32 +71,66 @@ class _AddReviewDialogState extends State<AddReviewDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Text(
+                      'Restaurant Name',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF4B5563),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     TextFormField(
-                      controller: _restaurantNameController,
                       decoration: InputDecoration(
-                        labelText: 'Restaurant Name',
+                        hintText: 'Enter restaurant name',
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Colors.blue, width: 2),
                         ),
                       ),
-                      enabled: widget.restaurantName == null, // Only enable if not pre-filled
                       validator: (value) => value?.isEmpty ?? true ? 'Please enter restaurant name' : null,
+                      onSaved: (value) => _restaurantName = value ?? '',
                     ),
                     const SizedBox(height: 16),
+                    const Text(
+                      'Food Name',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF4B5563),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     TextFormField(
-                      controller: _foodNameController,
                       decoration: InputDecoration(
-                        labelText: 'Food Name',
+                        hintText: 'What did you eat?',
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Colors.blue, width: 2),
                         ),
                       ),
-                      enabled: widget.foodName == null, // Only enable if not pre-filled
                       validator: (value) => value?.isEmpty ?? true ? 'Please enter food name' : null,
+                      onSaved: (value) => _foodName = value ?? '',
                     ),
                     const SizedBox(height: 16),
                     const Text(
@@ -133,25 +139,41 @@ class _AddReviewDialogState extends State<AddReviewDialog> {
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF4B5563),
-                        fontFamily: 'Montserrat',
                       ),
                     ),
                     const SizedBox(height: 8),
                     _buildRatingSelector(),
                     const SizedBox(height: 16),
+                    const Text(
+                      'Review',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF4B5563),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     TextFormField(
-                      controller: _reviewController,
                       decoration: InputDecoration(
-                        labelText: 'Your Review',
                         hintText: 'Share your thoughts about the food and experience...',
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Colors.blue, width: 2),
                         ),
                       ),
                       maxLines: 4,
-                      validator: (value) => value?.isEmpty ?? true ? 'Please write your review' : null,
+                      validator: (value) => value?.isEmpty ?? true ? 'Please enter your review' : null,
+                      onSaved: (value) => _review = value ?? '',
                     ),
                     const SizedBox(height: 24),
                     Row(
@@ -161,58 +183,54 @@ class _AddReviewDialogState extends State<AddReviewDialog> {
                           onPressed: () => Navigator.pop(context),
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                            side: const BorderSide(color: Color(0xFFD1D5DB)),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text('Cancel'),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(color: Color(0xFF4B5563)),
+                          ),
                         ),
                         const SizedBox(width: 12),
                         TextButton(
-                          onPressed: _rating == 0 ? null : () async {
+                          onPressed: () async {
                             if (_formKey.currentState?.validate() ?? false) {
+                              _formKey.currentState?.save();
+                              
                               try {
-                                // Get user ID dari Django session
-                                final userInfo = await request.get('http://localhost:8000/get_user_data/');
-                                final userId = userInfo['data']['user']['id'] as int; 
-
                                 final fields = Fields(
-                                  user: userId,
-                                  restaurantName: _restaurantNameController.text,
-                                  foodName: _foodNameController.text,
-                                  review: _reviewController.text,
+                                  user: 1,
+                                  restaurantName: _restaurantName,
+                                  foodName: _foodName,
+                                  review: _review,
                                   rating: _rating,
                                   dateAdded: DateTime.now(),
-                                  productIdentifier: widget.productId ?? '', // Optional product ID
+                                  productIdentifier: '',
                                 );
                                 
-                                await widget.reviewService.createReview(fields);
-                                
-                                if (mounted) {
-                                  widget.onReviewAdded();
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Review added successfully!')),
-                                  );
-                                }
+                                await widget.reviewService.createReview(fields);  // Use widget.reviewService
+                                widget.onReviewAdded();
+                                Navigator.pop(context);
                               } catch (e) {
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Error creating review: $e')),
-                                  );
-                                }
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error creating review: $e')),
+                                );
                               }
                             }
                           },
                           style: TextButton.styleFrom(
-                            backgroundColor: _rating == 0 ? Colors.grey : const Color(0xFFF6D110),
-                            foregroundColor: Colors.black,
+                            backgroundColor: Colors.blue,
                             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text('Save Review'),
+                          child: const Text(
+                            'Save Review',
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
                       ],
                     ),

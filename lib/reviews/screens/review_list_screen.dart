@@ -27,10 +27,10 @@ class _ReviewListScreenState extends State<ReviewListScreen> {
   }
 
   void _refreshReviews() {
-  setState(() {
-    _reviewsFuture = _reviewService.getReviews();
-  });
-}
+    setState(() {
+      _reviewsFuture = _reviewService.getReviews();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

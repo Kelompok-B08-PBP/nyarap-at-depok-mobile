@@ -38,13 +38,25 @@ class ProductCard extends StatelessWidget {
   }
 
   void navigateToDetails(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProductDetailsScreen(productId: id, cacheKey: cacheKey,),
-      ),
-    );
-  }
+  final product = {
+    'id': id,
+    'name': name,
+    'image_url': imageUrl,
+    'restaurant': restaurant,
+    'rating': rating,
+    'location': kecamatan,
+    'operational_hours': operationalHours,
+    'price': price,
+    'category': kategori,
+  };
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ProductDetailsScreen(product: product),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
