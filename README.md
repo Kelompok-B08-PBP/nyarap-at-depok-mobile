@@ -1,6 +1,6 @@
 # Nyarap @Depok🍳 Mobile
-Tautan APK : https://install.appcenter.ms/orgs/Kelompok-PBP-B08/apps/Nyarap-at-Depok/releases/4
-Video Promosi : ristek.link/Nyarap@DepokPBP
+### Tautan APK : https://install.appcenter.ms/orgs/Kelompok-PBP-B08/apps/Nyarap-at-Depok/releases/4
+### Video Promosi : ristek.link/Nyarap@DepokPBP
 
 
 ### Kelompok B08:
