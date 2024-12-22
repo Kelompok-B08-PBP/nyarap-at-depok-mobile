@@ -38,17 +38,27 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeScreen();
+  }
+
+  Future<void> _initializeScreen() async {
     if (widget.isAuthenticated) {
-      _loadPreferences();
+      await _loadPreferences();
     } else {
       setState(() => _isLoading = false);
     }
   }
 
   Future<void> _loadPreferences() async {
-    final request = context.read<CookieRequest>();
+    if (!mounted) return;
+    
+    setState(() => _isLoading = true);
+    
     try {
+      final request = context.read<CookieRequest>();
       final response = await request.get('http://localhost:8000/get_user_data/');
+
+      if (!mounted) return;
 
       if (response['status'] == 'success') {
         final data = response['data'];
@@ -64,24 +74,69 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                 createdAt: DateTime.now(),
               )
             ];
-            _isLoading = false;
           });
         } else {
           setState(() {
             _preferences = [];
-            _isLoading = false;
           });
         }
       }
     } catch (e) {
       print('Error loading preferences: $e');
-      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading preferences: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _deletePreference() async {
+    final request = context.read<CookieRequest>();
+    setState(() => _isLoading = true);
+    
+    try {
+      final response = await request.post(
+        'http://localhost:8000/api/preferences/delete/',
+        {},
+      );
+
+      if (!mounted) return;
+
+      if (response['status'] == 'success') {
+        setState(() {
+          _preferences = [];  // Clear preferences immediately
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Preferensi berhasil dihapus')),
+        );
+        
+        await _loadPreferences();  // Reload to ensure UI is in sync
+      }
+    } catch (e) {
+      print('Error deleting preference: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal menghapus preferensi')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   Future<void> _savePreference(Map<String, String> data) async {
-    final request = context.read<CookieRequest>();
+    setState(() => _isLoading = true);
+    
     try {
+      final request = context.read<CookieRequest>();
       final response = await request.post(
         'http://localhost:8000/api/preferences/save/',
         jsonEncode({
@@ -91,13 +146,13 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
         }),
       );
 
+      if (!mounted) return;
+
       if (response['status'] == 'success') {
         await _loadPreferences();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Preferensi berhasil disimpan')),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Preferensi berhasil disimpan')),
+        );
       }
     } catch (e) {
       print('Error saving preference: $e');
@@ -106,31 +161,9 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
           const SnackBar(content: Text('Gagal menyimpan preferensi')),
         );
       }
-    }
-  }
-
-  Future<void> _deletePreference() async {
-    final request = context.read<CookieRequest>();
-    try {
-      final response = await request.post(
-        'http://localhost:8000/api/preferences/delete/',
-        {},
-      );
-
-      if (response['status'] == 'success') {
-        await _loadPreferences();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Preferensi berhasil dihapus')),
-          );
-        }
-      }
-    } catch (e) {
-      print('Error deleting preference: $e');
+    } finally {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal menghapus preferensi')),
-        );
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -161,106 +194,102 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
       );
     }
 
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Preferensi Sarapan'),
         backgroundColor: Colors.black,
       ),
-      body: RefreshIndicator(
-        key: _refreshIndicatorKey,
-        onRefresh: _loadPreferences,
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              color: Colors.black.withOpacity(0.1),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              key: _refreshIndicatorKey,
+              onRefresh: _loadPreferences,
               child: Column(
                 children: [
-                  Text(
-                    'Preferensi Sarapan Anda',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  if (widget.username != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      'Hi, ${widget.username}!',
-                      style: Theme.of(context).textTheme.titleMedium,
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    color: Colors.black.withOpacity(0.1),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Preferensi Sarapan Anda',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        if (widget.username != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            'Hi, ${widget.username}!',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
+                      ],
                     ),
-                  ],
+                  ),
+                  Expanded(
+                    child: _preferences == null || _preferences!.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text('Belum ada preferensi tersimpan'),
+                                const SizedBox(height: 16),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => RecommendationsForm(
+                                          isAuthenticated: widget.isAuthenticated,
+                                          username: widget.username,
+                                        ),
+                                      ),
+                                    ).then((_) => _loadPreferences());
+                                  },
+                                  child: const Text('Tambah Preferensi'),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: _preferences!.length,
+                            itemBuilder: (context, index) {
+                              final pref = _preferences![index];
+                              return PreferenceCard(
+                                preference: pref,
+                                onEdit: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => RecommendationsForm(
+                                        isAuthenticated: widget.isAuthenticated,
+                                        username: widget.username,
+                                        initialPreferences: Explore(
+                                          model: "explore.userpreference",
+                                          pk: pref.id,
+                                          fields: Fields(
+                                            user: pref.userId,
+                                            preferredLocation: pref.preferredLocation,
+                                            preferredBreakfastType:
+                                                pref.preferredBreakfastType,
+                                            preferredPriceRange:
+                                                pref.preferredPriceRange,
+                                            createdAt: DateTime.now(),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ).then((_) => _loadPreferences());
+                                },
+                                onDelete: _deletePreference,
+                                onSave: _savePreference,
+                              );
+                            },
+                          ),
+                  ),
                 ],
               ),
             ),
-            Expanded(
-              child: _preferences == null || _preferences!.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text('Belum ada preferensi tersimpan'),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => RecommendationsForm(
-                                    isAuthenticated: widget.isAuthenticated,
-                                    username: widget.username,
-                                  ),
-                                ),
-                              ).then((_) => _loadPreferences());
-                            },
-                            child: const Text('Tambah Preferensi'),
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: _preferences!.length,
-                      itemBuilder: (context, index) {
-                        final pref = _preferences![index];
-                        return PreferenceCard(
-                          preference: pref,
-                          onEdit: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => RecommendationsForm(
-                                  isAuthenticated: widget.isAuthenticated,
-                                  username: widget.username,
-                                  initialPreferences: Explore(
-                                    model: "explore.userpreference",
-                                    pk: pref.id,
-                                    fields: Fields(
-                                      user: pref.userId,
-                                      preferredLocation: pref.preferredLocation,
-                                      preferredBreakfastType:
-                                          pref.preferredBreakfastType,
-                                      preferredPriceRange:
-                                          pref.preferredPriceRange,
-                                      createdAt: DateTime.now(),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ).then((_) => _loadPreferences());
-                          },
-                          onDelete: _deletePreference,
-                          onSave: _savePreference,
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -332,7 +361,7 @@ class _PreferenceCardState extends State<PreferenceCard> {
       if (word.isEmpty) return word;
       return word[0].toUpperCase() + word.substring(1).toLowerCase();
     }).join(' ');
-}
+  }
 
   String _getDisplayPriceRange(String range) {
     final Map<String, String> priceRanges = {
@@ -436,6 +465,8 @@ class _PreferenceCardState extends State<PreferenceCard> {
                                     .map((json) => Recommendation.fromJson(json))
                                     .toList();
 
+                            final String cacheKey = response['cache_key'] ?? '';
+
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -449,6 +480,8 @@ class _PreferenceCardState extends State<PreferenceCard> {
                                     'price_range': _getDisplayPriceRange(
                                         widget.preference.preferredPriceRange),
                                   },
+                                  isAuthenticated: true,
+                                  cacheKey: cacheKey,
                                 ),
                               ),
                             );

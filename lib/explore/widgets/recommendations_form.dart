@@ -171,7 +171,8 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
           print('Error saving preferences: $e');
         }
       }
-
+      
+      
       final url = Uri.parse('http://localhost:8000/api/recommendations/');
       final requestBody = jsonEncode({
         'breakfast_type': _selectedBreakfast,
@@ -190,9 +191,11 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
 
       if (!mounted) return;
       if (response.statusCode == 200) {
+        
         final Map<String, dynamic> responseData = jsonDecode(response.body);
 
         if (responseData['status'] == 'success') {
+          final String cacheKey = responseData['cache_key'];
           final List<dynamic> recommendationsJson =
               responseData['recommendations'] as List<dynamic>;
           final List<Recommendation> recommendations = recommendationsJson
@@ -212,6 +215,8 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
                   'breakfast_type': breakfastChoices[_selectedBreakfast]!,
                   'price_range': priceRanges[_selectedPriceRange]!['label'],
                 },
+                cacheKey: cacheKey,
+                isAuthenticated: widget.isAuthenticated,
               ),
             ),
           );

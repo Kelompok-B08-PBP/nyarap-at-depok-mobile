@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import './product_details.dart';
 
 class ProductCard extends StatelessWidget {
+  final String id;
   final String imageUrl;
   final String name;
   final String restaurant;
@@ -10,12 +11,14 @@ class ProductCard extends StatelessWidget {
   final String operationalHours;
   final String price;
   final String kategori;
+   final String cacheKey;
   
   final double? width;
   final double? imageHeight;
 
   const ProductCard({
     Key? key,
+    required this.id,
     required this.imageUrl,
     required this.name,
     required this.restaurant,
@@ -24,6 +27,7 @@ class ProductCard extends StatelessWidget {
     required this.operationalHours,
     required this.price,
     required this.kategori,
+    required this.cacheKey,
     this.width,
     this.imageHeight,
   }) : super(key: key);
@@ -33,34 +37,22 @@ class ProductCard extends StatelessWidget {
     return '${text.substring(0, 10)}...';
   }
 
+  void navigateToDetails(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductDetailsScreen(productId: id, cacheKey: cacheKey,),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
-    
-    void navigateToDetails() {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ProductDetailsScreen(
-            product: {
-              'name': name,
-              'restaurant': restaurant,
-              'rating': rating,
-              'location': kecamatan,
-              'operational_hours': operationalHours,
-              'display_price': price,
-              'image_url': imageUrl,
-              'kecamatan': kecamatan,
-              'category': kategori,
-            },
-          ),
-        ),
-      );
-    }
 
     return GestureDetector(
-      onTap: navigateToDetails,
+      onTap: () => navigateToDetails(context),
       child: Container(
         width: width,
         constraints: BoxConstraints(
@@ -84,6 +76,7 @@ class ProductCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Product Image
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
               child: Image.network(
@@ -103,6 +96,7 @@ class ProductCard extends StatelessWidget {
               ),
             ),
             
+            // Product Details
             Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: isSmallScreen ? 8.0 : 10.0,
@@ -111,6 +105,7 @@ class ProductCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Product Name and Rating
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -134,7 +129,6 @@ class ProductCard extends StatelessWidget {
                           color: Colors.green,
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        
                         child: Row(
                           children: [
                             const Icon(
@@ -159,6 +153,7 @@ class ProductCard extends StatelessWidget {
                   
                   const SizedBox(height: 2),
                   
+                  // Restaurant Name
                   Text(
                     restaurant,
                     style: TextStyle(
@@ -171,6 +166,7 @@ class ProductCard extends StatelessWidget {
                   
                   const SizedBox(height: 4),
                   
+                  // Location
                   Row(
                     children: [
                       Icon(
@@ -191,6 +187,7 @@ class ProductCard extends StatelessWidget {
                   
                   const SizedBox(height: 2),
                   
+                  // Operational Hours
                   Row(
                     children: [
                       Icon(
@@ -215,6 +212,7 @@ class ProductCard extends StatelessWidget {
                   
                   const SizedBox(height: 6),
                   
+                  // Price and Detail Button
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -234,7 +232,7 @@ class ProductCard extends StatelessWidget {
                       SizedBox(
                         height: 28,
                         child: ElevatedButton(
-                          onPressed: navigateToDetails,
+                          onPressed: () => navigateToDetails(context),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange,
                             foregroundColor: Colors.white,

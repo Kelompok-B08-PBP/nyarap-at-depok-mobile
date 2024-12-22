@@ -45,7 +45,12 @@ class LoginApp extends StatelessWidget {
 }
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final Function(String)? onLoginSuccess;
+
+  const LoginPage({
+    super.key,
+    this.onLoginSuccess,
+  });
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -156,7 +161,13 @@ class _LoginPageState extends State<LoginPage> {
                       if (request.loggedIn) {
                         String message = response['message'];
                         String uname = response['username'];
-                        if (context.mounted) {
+                        if (!context.mounted) return;
+
+                        if (widget.onLoginSuccess != null) {
+                          // If callback exists, use it
+                          widget.onLoginSuccess!(uname);
+                        } else {
+                          // Default navigation
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
@@ -168,56 +179,56 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                           );
-                          ScaffoldMessenger.of(context)
-                            ..hideCurrentSnackBar()
-                            ..showSnackBar(
-                              SnackBar(
-                                content: Row(
-                                  children: [
-                                    const Icon(Icons.check_circle, color: Colors.white),
-                                    const SizedBox(width: 8),
-                                    Text("$message Selamat datang, $uname."),
-                                  ],
-                                ),
-                                backgroundColor: Colors.green,
-                                behavior: SnackBarBehavior.floating,
-                                margin: const EdgeInsets.all(16),
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(Radius.circular(8)),
-                                ),
-                              ),
-                            );
                         }
-                      } else {
-                        if (context.mounted) {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text(
-                                'Login Gagal',
-                                style: TextStyle(
-                                  color: Color(0xFFCE181B),
-                                  fontWeight: FontWeight.bold,
-                                ),
+
+                        ScaffoldMessenger.of(context)
+                          ..hideCurrentSnackBar()
+                          ..showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  const Icon(Icons.check_circle, color: Colors.white),
+                                  const SizedBox(width: 8),
+                                  Text("$message Selamat datang, $uname."),
+                                ],
                               ),
-                              content: Text(
-                                response['message'],
-                                style: TextStyle(color: Colors.grey[800]),
+                              backgroundColor: Colors.green,
+                              behavior: SnackBarBehavior.floating,
+                              margin: const EdgeInsets.all(16),
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(8)),
                               ),
-                              actions: [
-                                TextButton(
-                                  child: const Text(
-                                    'OK',
-                                    style: TextStyle(color: Color(0xFFCE181B)),
-                                  ),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                              ],
                             ),
                           );
-                        }
+                      } else {
+                        if (!context.mounted) return;
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text(
+                              'Login Gagal',
+                              style: TextStyle(
+                                color: Color(0xFFCE181B),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            content: Text(
+                              response['message'],
+                              style: TextStyle(color: Colors.grey[800]),
+                            ),
+                            actions: [
+                              TextButton(
+                                child: const Text(
+                                  'OK',
+                                  style: TextStyle(color: Color(0xFFCE181B)),
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ],
+                          ),
+                        );
                       }
                     },
                     style: FilledButton.styleFrom(

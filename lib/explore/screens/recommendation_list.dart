@@ -10,11 +10,13 @@ class RecommendationsListPage extends StatelessWidget {
   final List<Recommendation> recommendations;
   final Map<String, String> preferences;
   final bool isAuthenticated;
+  final String cacheKey; 
 
   const RecommendationsListPage({
     Key? key,
     required this.recommendations,
     required this.preferences,
+    required this.cacheKey, 
     this.isAuthenticated = false,
   }) : super(key: key);
 
@@ -208,7 +210,39 @@ class RecommendationsListPage extends StatelessWidget {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const LoginPage(),
+                                        builder: (context) => LoginPage(
+                                          onLoginSuccess: (username) {
+                                            Navigator.pushAndRemoveUntil(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => HomePage(
+                                                  isAuthenticated: true,
+                                                  preferences: {
+                                                    'preferences': {
+                                                      'breakfast_category': preferences['breakfast_type'],
+                                                      'district_category': preferences['location'],
+                                                      'price_range': preferences['price_range'],
+                                                      'cache_key': cacheKey,
+                                                    },
+                                                    'username': username,
+                                                  },
+                                                  recommendations: recommendations.map((recommendation) => {
+                                                    'id': recommendation.id,
+                                                    'imageUrl': recommendation.imageUrl,
+                                                    'name': recommendation.name,
+                                                    'restaurant': recommendation.restaurant,
+                                                    'rating': recommendation.rating,
+                                                    'kecamatan': recommendation.location,
+                                                    'operationalHours': recommendation.operationalHours,
+                                                    'price': recommendation.price,
+                                                    'kategori': preferences['breakfast_type'],
+                                                  }).toList(),
+                                                ),
+                                              ),
+                                              (route) => false,
+                                            );
+                                          },
+                                        ),
                                       ),
                                     );
                                   },
@@ -249,6 +283,7 @@ class RecommendationsListPage extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final recommendation = recommendations[index];
                           return ProductCard(
+                            id: recommendation.id,
                             imageUrl: recommendation.imageUrl,
                             name: recommendation.name,
                             restaurant: recommendation.restaurant,
@@ -257,15 +292,32 @@ class RecommendationsListPage extends StatelessWidget {
                             operationalHours: recommendation.operationalHours,
                             price: recommendation.price,
                             kategori: preferences['breakfast_type'] ?? '',
+                            cacheKey: cacheKey, 
                           );
                         },
                       ),
 
                       // Back to Home Button
+                      // Back to Home Button
                       Padding(
                         padding: const EdgeInsets.all(16),
                         child: TextButton.icon(
                           onPressed: () async {
+                            if (!isAuthenticated) {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const HomePage(
+                                    isAuthenticated: false,
+                                    preferences: {},
+                                    recommendations: [],
+                                  ),
+                                ),
+                                (route) => false,
+                              );
+                              return;
+                            }
+
                             final request = context.read<CookieRequest>();
                             try {
                               final response = await request.get('http://localhost:8000/get_user_data/');
@@ -285,10 +337,12 @@ class RecommendationsListPage extends StatelessWidget {
                                           'breakfast_category': preferences['breakfast_type'],
                                           'district_category': preferences['location'],
                                           'price_range': preferences['price_range'],
+                                          'cache_key': cacheKey,
                                         },
                                         'username': username,
                                       },
                                       recommendations: recommendations.map((recommendation) => {
+                                        'id': recommendation.id,
                                         'imageUrl': recommendation.imageUrl,
                                         'name': recommendation.name,
                                         'restaurant': recommendation.restaurant,
@@ -329,7 +383,7 @@ class RecommendationsListPage extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ),
+                      )
                     ],
                   ),
                 ),

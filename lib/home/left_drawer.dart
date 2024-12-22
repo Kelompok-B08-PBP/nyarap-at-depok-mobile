@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nyarap_at_depok_mobile/home/login.dart';
 import 'package:nyarap_at_depok_mobile/home/register.dart';
-import 'package:nyarap_at_depok_mobile/explore/screens/preferences_screen.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:nyarap_at_depok_mobile/reviews/screens/review_list_screen.dart';
