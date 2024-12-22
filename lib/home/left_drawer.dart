@@ -5,6 +5,7 @@ import 'package:nyarap_at_depok_mobile/explore/screens/preferences_screen.dart';
 import 'package:nyarap_at_depok_mobile/wishlist/screens/wishlist_screens.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:nyarap_at_depok_mobile/reviews/screens/review_list_screen.dart';
 
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
@@ -16,64 +17,96 @@ class LeftDrawer extends StatelessWidget {
     return Drawer(
       child: Container(
         color: Colors.white,
-        child: ListView(
-          padding: EdgeInsets.zero,
+        child: Column(
           children: [
-            // Drawer Header with Logo
-            DrawerHeader(
-              decoration: const BoxDecoration(
-                color: Color(0xFFF6D110), // Yellow background
+            // Modern Drawer Header with Gradient
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    const Color(0xFFCE181B),
+                    const Color(0xFFCE181B).withOpacity(0.8),
+                  ],
+                ),
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Image.asset(
-                    'assets/images/logo.png',
-                    width: 50,
-                    height: 50,
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Nyarap @Depok',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFFFFC107).withOpacity(0.3),
+                            width: 2,
+                          ),
+                        ),
+                        child: Image.asset(
+                          'assets/images/logo_besar.png',
+                          width: 40,
+                          height: 40,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Nyarap @Depok',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            'Find Your Breakfast',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: const Color(0xFFFFF176).withOpacity(0.9),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            
-            // Menu Items
-            ListTile(
-              leading: const Icon(Icons.home_outlined),
-              title: const Text(
-                'Home',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'Montserrat',
-                ),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                // Navigate to home
-              },
-            ),
 
-            ListTile(
-              leading: const Icon(Icons.people_outlined),
-              title: const Text(
-                'Community',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'Montserrat',
-                ),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                // Navigate to community page
-              },
-            ),
+            // Scrollable Menu Items
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: Text(
+                      'MENU',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[600],
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+
+
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.home_rounded,
+                    title: 'Home',
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
 
             ListTile(
               leading: const Icon(Icons.favorite_border),
@@ -88,104 +121,88 @@ class LeftDrawer extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => WishlistScreen(), // `const` dihapus jika ada stateful widget
+                    builder: (context) => WishlistScreen(), 
                   ),
                 );
               },
             ),
 
-            ListTile(
-              leading: const Icon(Icons.star_border),
-              title: const Text(
-                'Reviews',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'Montserrat',
-                ),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                // Navigate to reviews page
-              },
-            ),
 
-            ListTile(
-              leading: const Icon(Icons.settings_outlined),
-              title: const Text(
-                'Preferences',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'Montserrat',
-                ),
-              ),
-              onTap: () async {
-                Navigator.pop(context); // Close drawer first
-                // Check if user is logged in by checking if there's a logged_in_user cookie
-                final isLoggedIn = request.loggedIn;
-                
-                if (isLoggedIn) {
-                  // Get user data from the cookie
-                  final response = await request.get('http://localhost:8000/get_user_data/');
-                  if (response['status'] == 'success') {
-                    final userData = response['data'];
-                    if (context.mounted) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PreferencesScreen(
-                            isAuthenticated: true,
-                            username: userData['user']['username'], // Pass the username from the response
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.people_alt_rounded,
+                    title: 'Community',
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.favorite_rounded,
+                    title: 'Wishlist',
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.star_rounded,
+                    title: 'Reviews',
+                    onTap: () {
+                      Navigator.pop(context);
+                      if (request.loggedIn) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ReviewListScreen(
+                              isAuthenticated: true,
+                            ),
                           ),
-                        ),
-                      );
-                    }
-                  } else {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Gagal mengambil data preferensi'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-                  }
-                } else {
-                  if (context.mounted) {
-                    // Show login required message
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Silakan login terlebih dahulu'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                    // Navigate to login page
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
-                    );
-                  }
-                }
-              },
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Silakan login terlebih dahulu'),
+                            backgroundColor: Colors.red[700],
+                          ),
+                        );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const LoginPage()),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
 
-            const Divider(),
-
-            // Login/Register section at bottom
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            // Account Section at Bottom
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFDE7).withOpacity(0.3),
+                border: Border(
+                  top: BorderSide(
+                    color: const Color(0xFFFFF59D).withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+              ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (!request.loggedIn) ...[
-                    // Show login button only if user is not logged in
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        foregroundColor: Colors.black,
-                        elevation: 0,
-                        side: const BorderSide(color: Colors.black),
-                        minimumSize: const Size.fromHeight(40),
+                    // Login Button
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFFCE181B),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 46),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       onPressed: () {
@@ -194,22 +211,27 @@ class LeftDrawer extends StatelessWidget {
                           MaterialPageRoute(builder: (context) => const LoginPage()),
                         );
                       },
-                      child: const Text(
+                      icon: const Icon(Icons.login_rounded, size: 20),
+                      label: const Text(
                         'Login',
                         style: TextStyle(
-                          fontFamily: 'Montserrat',
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFC3372B),
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size.fromHeight(40),
+                    // Register Button with yellow border
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFFCE181B),
+                        minimumSize: const Size(double.infinity, 46),
+                        side: BorderSide(
+                          color: const Color(0xFFCE181B),
+                          width: 1.5,
+                        ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       onPressed: () {
@@ -218,56 +240,82 @@ class LeftDrawer extends StatelessWidget {
                           MaterialPageRoute(builder: (context) => const RegisterPage()),
                         );
                       },
-                      child: const Text(
+                      icon: const Icon(Icons.person_add_rounded, size: 20),
+                      label: const Text(
                         'Register',
                         style: TextStyle(
-                          fontFamily: 'Montserrat',
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                   ] else ...[
-                    // Show logout button if user is logged in
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFC3372B),
+                    // Logout Button
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFFCE181B),
                         foregroundColor: Colors.white,
-                        minimumSize: const Size.fromHeight(40),
+                        minimumSize: const Size(double.infinity, 46),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       onPressed: () async {
                         final response = await request.logout(
-                          'http://localhost:8000/logout/'
+                          'http://localhost:8000/auth/logout/'
                         );
-                        if (response['status'] == 'success') {
-                          if (context.mounted) {
+                        String message = response["message"];
+                        
+                        if (context.mounted) {
+                          if (response['status']) {
+                            String uname = response["username"];
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Berhasil logout'),
+                              SnackBar(
+                                content: Row(
+                                  children: [
+                                    const Icon(Icons.check_circle, color: Colors.white),
+                                    const SizedBox(width: 8),
+                                    Text("$message Sampai jumpa, $uname."),
+                                  ],
+                                ),
+                                backgroundColor: Colors.green,
+                                behavior: SnackBarBehavior.floating,
+                                margin: const EdgeInsets.all(16),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                                ),
                               ),
                             );
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(builder: (context) => const LoginPage()),
                             );
-                          }
-                        } else {
-                          if (context.mounted) {
+                          } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Gagal logout'),
-                                backgroundColor: Colors.red,
+                              SnackBar(
+                                content: Row(
+                                  children: [
+                                    const Icon(Icons.error, color: Colors.white),
+                                    const SizedBox(width: 8),
+                                    Text(message),
+                                  ],
+                                ),
+                                backgroundColor: Colors.red[700],
+                                behavior: SnackBarBehavior.floating,
+                                margin: const EdgeInsets.all(16),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                                ),
                               ),
                             );
                           }
                         }
                       },
-                      child: const Text(
+                      icon: const Icon(Icons.logout_rounded, size: 20),
+                      label: const Text(
                         'Logout',
                         style: TextStyle(
-                          fontFamily: 'Montserrat',
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -277,6 +325,51 @@ class LeftDrawer extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    bool isActive = false,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isActive ? const Color(0xFFFFF9C4).withOpacity(0.2) : Colors.transparent,
+            border: Border(
+              left: BorderSide(
+                color: isActive ? const Color(0xFFFFC107) : Colors.transparent,
+                width: 4,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 24,
+                color: isActive ? const Color(0xFFCE181B) : Colors.grey[700],
+              ),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  color: isActive ? const Color(0xFFCE181B) : Colors.grey[800],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

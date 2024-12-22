@@ -30,7 +30,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
+  logging: ^1.0.2
+
+
   shared_preferences: ^2.0.0
+
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -61,6 +66,26 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/images/avatar.png
+    - assets/images/bubur.png
+    - assets/images/cemilan.png
+    - assets/images/hero_food.png
+    - assets/images/logo.png
+    - assets/images/logokecil.png
+    - assets/images/logokecil2.png
+    - assets/images/lontong.png
+    - assets/images/makanan_berat.png
+    - assets/images/mie.png
+    - assets/images/minuman.png
+    - assets/images/nasi.png
+    - assets/images/roti.png
+    - assets/images/masih_bingung.png
+    - assets/images/restaurant.png
+    - assets/images/logo_besar.png
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:
