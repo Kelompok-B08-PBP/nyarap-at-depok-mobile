@@ -220,7 +220,7 @@ class _CommentSectionState extends State<CommentSection> {
                 return ListTile(
                   title: Text(comment.content),
                   subtitle:
-                      Text('By ${comment.userName} at ${comment.createdAt}'),
+                      Text('By ${comment.userName}'),
                   trailing: isOwner
                       ? PopupMenuButton<String>(
                           onSelected: (value) {

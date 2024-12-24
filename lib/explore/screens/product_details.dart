@@ -29,95 +29,84 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     super.initState();
     final request = Provider.of<CookieRequest>(context, listen: false);
     _reviewService = ProductReviewService(request);
-
-    // Memuat daftar review ketika halaman ini pertama kali dibuka
     _refreshReviews();
   }
 
-  /// Mengambil review untuk produk ini berdasarkan 'id' (integer) yang di-convert ke string
   void _refreshReviews() {
     setState(() {
-      // Gunakan ID (integer) sebagai productIdentifier
       final productId = widget.product['id']?.toString() ?? '';
       _reviewsFuture = _reviewService.getReviewsForProduct(productId);
     });
   }
 
-  /// Handler tombol "Add Review"
   void _handleAddReview() {
     final request = Provider.of<CookieRequest>(context, listen: false);
-
-    // Jika belum login, arahkan ke LoginPage()
     if (!request.loggedIn) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-      );
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginPage()));
       return;
     }
-
-    // Gunakan ID sebagai productIdentifier untuk penambahan review
     final productId = widget.product['id']?.toString() ?? '';
     _showAddReviewDialog(productId);
   }
 
-  /// Menampilkan dialog form untuk menambah review
   void _showAddReviewDialog(String productId) {
     final restaurantName = widget.product['restaurant'] ?? '';
-    final foodName = widget.product['name'] ?? ''; // Tampilkan nama produk di form
+    final foodName = widget.product['name'] ?? '';
 
     showDialog(
       context: context,
       builder: (BuildContext context) => Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: SingleChildScrollView(
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Add New Review',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                  ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Add New Review',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFFCE181B),
                 ),
-                const SizedBox(height: 24),
-                _ReviewForm(
-                  initialRestaurantName: restaurantName,
-                  initialFoodName: foodName,
-                  productId: productId,
-                  reviewService: _reviewService,
-                  onReviewAdded: () {
-                    Navigator.pop(context);
-                    _refreshReviews();  // muat ulang review setelah berhasil menambah
-                  },
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 24),
+              _ReviewForm(
+                initialRestaurantName: restaurantName,
+                initialFoodName: foodName,
+                productId: productId,
+                reviewService: _reviewService,
+                onReviewAdded: () {
+                  Navigator.pop(context);
+                  _refreshReviews();
+                },
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  /// Menghapus review
   Future<void> _handleDeleteReview(Review review) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         title: const Text('Delete Review'),
         content: const Text('Are you sure you want to delete this review?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Color(0xFFCE181B)),
+            ),
           ),
         ],
       ),
@@ -139,465 +128,570 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Tampilan utama detail produk
     return Scaffold(
-      body: SingleChildScrollView(
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Tombol Back
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.arrow_back, color: Color(0xFF4A5568)),
-                        SizedBox(width: 8),
-                        Text(
-                          'Back',
-                          style: TextStyle(
-                            color: Color(0xFF4A5568),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+      body: CustomScrollView(
+        slivers: [
+          // Custom App Bar with Image
+          SliverAppBar(
+            expandedHeight: 300,
+            pinned: true,
+            backgroundColor: const Color(0xFFCE181B),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Product Image
+                  Image.network(
+                    widget.product['image_url'] ?? '/api/placeholder/800/400',
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.image_not_supported, size: 50),
                     ),
                   ),
+                  // Gradient Overlay
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.7),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Back Button
+            leading: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: CircleAvatar(
+                backgroundColor: Colors.white,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Color(0xFFCE181B)),
+                  onPressed: () => Navigator.pop(context),
                 ),
               ),
+            ),
+          ),
 
-              // Card detail produk
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 16,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Gambar + Kategori
-                    Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                          child: Image.network(
-                            widget.product['image_url'] ?? '/api/placeholder/800/400',
-                            height: 300,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                height: 300,
-                                color: Colors.grey[200],
-                                child: const Center(
-                                  child: Icon(Icons.image_not_supported),
-                                ),
-                              );
-                            },
+          // Content
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Product Info Card
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Category Tag
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF3CD),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          widget.product['category'] ?? 'Nasi',
+                          style: const TextStyle(
+                            color: Color(0xFFCE181B),
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        Positioned(
-                          top: 16,
-                          right: 16,
-                          child: Container(
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Product Name & Restaurant
+                      Text(
+                        widget.product['name'] ?? '',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        widget.product['restaurant'] ?? '',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF4A5568),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Rating & Price
+                      Row(
+                        children: [
+                          Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.7),
-                              borderRadius: BorderRadius.circular(16),
+                              color: const Color(0xFFCE181B),
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Text(
-                              widget.product['category'] ?? 'Nasi',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // Info Produk
-                    Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Nama Makanan (pakai 'name')
-                          Text(
-                            widget.product['name'] ?? '',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1A1A1A),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-
-                          // Nama Resto
-                          Text(
-                            widget.product['restaurant'] ?? '',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Color(0xFF4A5568),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Rating & Harga
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF4CAF50),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Text(
-                                      '★',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      '${widget.product['rating'] ?? 0}',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Rp ${widget.product['price'] ?? "0"}',
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF2D3748),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          // Lokasi & Jam Operasional
-                          Container(
-                            margin: const EdgeInsets.symmetric(vertical: 20),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
+                            child: Row(
                               children: [
-                                Row(
-                                  children: [
-                                    const Icon(Icons.location_on, size: 20, color: Color(0xFF4A5568)),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        widget.product['location'] ?? '',
-                                        style: const TextStyle(
-                                          color: Color(0xFF4A5568),
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                const Icon(
+                                  Icons.star,
+                                  color: Colors.white,
+                                  size: 18,
                                 ),
-                                const SizedBox(height: 16),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.access_time, size: 20, color: Color(0xFF4A5568)),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      widget.product['operational_hours'] ?? '',
-                                      style: const TextStyle(
-                                        color: Color(0xFF4A5568),
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${widget.product['rating'] ?? 0}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-
-                          // Tombol Wishlist & Add Review
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    final request = Provider.of<CookieRequest>(
-                                        context,
-                                        listen: false);
-
-                                    // Check login status first and redirect to login if not logged in
-                                    if (!request.loggedIn) {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const LoginPage()),
-                                      );
-                                      return;
-                                    }
-                                    try {
-                                      await WishlistService.addToWishlist(context, widget.product);
-                                      if (mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Added to Wishlist')),
-                                        );
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (context) => const WishlistScreen()),
-                                        );
-                                      }
-                                    } catch (e) {
-                                      if (mounted) {
-                                        // Still navigate to wishlist since product was added successfully
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Added to Wishlist')),
-                                        );
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (context) => const WishlistScreen()),
-                                        );
-                                      }
-                                    }
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFEDF2F7),
-                                    foregroundColor: const Color(0xFF2D3748),
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                  ),
-                                  child: const Text('Add to Wishlist'),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: _handleAddReview,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 12),
-                                  ),
-                                  child: const Text('Add Review'),
-                                ),
-                              ),
-                            ],
+                          const SizedBox(width: 12),
+                          Text(
+                            'Rp ${widget.product['price'] ?? "0"}',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFCE181B),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-
-
-              // Section "Customer Reviews"
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                child: Text(
-                  'Customer Reviews',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    ],
                   ),
                 ),
-              ),
 
-              // Menampilkan daftar review
-              FutureBuilder<List<Review>>(
-                future: _reviewsFuture,
-                builder: (context, snapshot) {
-                  // Loading
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  // Error
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  }
-
-                  // Tampilkan data
-                  final reviews = snapshot.data ?? [];
-                  if (reviews.isEmpty) {
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text('No reviews yet. Be the first to review!'),
+                // Info Cards
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
-                    );
-                  }
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      _buildInfoRow(
+                        Icons.location_on,
+                        widget.product['location'] ?? '',
+                        const Color(0xFFCE181B),
+                      ),
+                      const Divider(height: 20),
+                      _buildInfoRow(
+                        Icons.access_time,
+                        widget.product['operational_hours'] ?? '',
+                        const Color(0xFFCE181B),
+                      ),
+                    ],
+                  ),
+                ),
 
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: reviews.length,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemBuilder: (context, index) {
-                      final review = reviews[index];
-                      final request = Provider.of<CookieRequest>(context, listen: false);
-                      final currentUserId = request.jsonData['user_id'];
-
-                      // Hanya penulis review yang dapat Edit/Delete
-                      final isAuthor = currentUserId != null &&
-                          review.fields.user.toString() == currentUserId.toString();
-
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Header: Restaurant name + rating
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    review.fields.restaurantName,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                // Action Buttons
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildActionButton(
+                          icon: Icons.favorite_border,
+                          label: 'Add to Wishlist',
+                          onPressed: () async {
+                            final request = Provider.of<CookieRequest>(
+                              context,
+                              listen: false,
+                            );
+                            if (!request.loggedIn) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const LoginPage()),
+                              );
+                              return;
+                            }
+                            try {
+                              await WishlistService.addToWishlist(
+                                context,
+                                widget.product,
+                              );
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Added to Wishlist'),
                                   ),
-                                  Row(
-                                    children: List.generate(
-                                      5,
-                                      (starIndex) => Icon(
-                                        starIndex < review.fields.rating
-                                            ? Icons.star
-                                            : Icons.star_border,
-                                        color: Colors.amber,
-                                        size: 20,
-                                      ),
-                                    ),
+                                );
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const WishlistScreen(),
                                   ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-
-                              // Isi review
-                              Text(review.fields.review),
-                              const SizedBox(height: 8),
-
-                              // Tanggal tambah review
-                              Text(
-                                'Added on ${review.fields.dateAdded.toLocal().toString().split(' ')[0]}',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 12,
-                                ),
-                              ),
-
-                              // Tombol Edit/Delete jika author
-                            if (isAuthor) ...[
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  TextButton(
-                                    onPressed: () async {
-                                      // EditReviewScreen (jika Anda buat)
-                                      final result = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => EditReviewScreen(review: review),
-                                        ),
-                                      );
-                                      if (result == true) {
-                                        _refreshReviews();
-                                      }
-                                    },
-                                    style: TextButton.styleFrom(
-                                      backgroundColor: const Color(0xFFF6D110),
-                                      foregroundColor: Colors.black,
-                                    ),
-                                    child: const Text('Edit'),
+                                );
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const WishlistScreen(),
                                   ),
-                                  const SizedBox(width: 8),
-                                  TextButton(
-                                    onPressed: () => _handleDeleteReview(review),
-                                    style: TextButton.styleFrom(
-                                      backgroundColor: const Color(0xFFC3372B),
-                                      foregroundColor: Colors.white,
-                                    ),
-                                    child: const Text('Delete'),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ],
+                                );
+                              }
+                            }
+                          },
+                          isOutlined: true,
                         ),
                       ),
-                    );
-                  },
-                );
-              },
-            ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildActionButton(
+                          icon: Icons.rate_review,
+                          label: 'Add Review',
+                          onPressed: _handleAddReview,
+                          isOutlined: false,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-            // Section Comments
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                'Comments',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
+                // Reviews Section
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Customer Reviews',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      FutureBuilder<List<Review>>(
+                        future: _reviewsFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFFCE181B),
+                              ),
+                            );
+                          }
+                          if (snapshot.hasError) {
+                            return Center(
+                              child: Text('Error: ${snapshot.error}'),
+                            );
+                          }
+
+                          final reviews = snapshot.data ?? [];
+                          if (reviews.isEmpty) {
+                            return Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFF3CD),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'No reviews yet. Be the first to review!',
+                                  style: TextStyle(
+                                    color: Color(0xFFCE181B),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: reviews.length,
+                            itemBuilder: (context, index) {
+                              final review = reviews[index];
+                              final request = Provider.of<CookieRequest>(
+                                context,
+                                listen: false,
+                              );
+                              final currentUserId = request.jsonData['user_id'];
+                              final isAuthor = currentUserId != null &&
+                                  review.fields.user.toString() == currentUserId.toString();
+
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 16),
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                review.fields.restaurantName,
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF1A1A1A),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                'Added on ${review.fields.dateAdded.toLocal().toString().split(' ')[0]}',
+                                                style: TextStyle(
+                                                  color: Colors.grey[600],
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 6,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFFFF3CD),
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.star,
+                                                size: 16,
+                                                color: Color(0xFFCE181B),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                review.fields.rating.toString(),
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFFCE181B),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      review.fields.review,
+                                      style: const TextStyle(
+                                        color: Color(0xFF4A5568),
+                                        fontSize: 14,
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                    if (isAuthor) ...[
+                                      const SizedBox(height: 16),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          _buildReviewButton(
+                                            icon: Icons.edit,
+                                            label: 'Edit',
+                                            color: Colors.orange,
+                                            onPressed: () async {
+                                              final result = await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => EditReviewScreen(
+                                                    review: review,
+                                                  ),
+                                                ),
+                                              );
+                                              if (result == true) {
+                                                _refreshReviews();
+                                              }
+                                            },
+                                          ),
+                                          const SizedBox(width: 8),
+                                          _buildReviewButton(
+                                            icon: Icons.delete,
+                                            label: 'Delete',
+                                            color: const Color(0xFFCE181B),
+                                            onPressed: () => _handleDeleteReview(review),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Comments Section
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: CommentSection(
+                            productId: widget.product['id'].toString(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
-            CommentSection(productId: widget.product['id'].toString(),),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text, Color color) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF3CD),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFF4A5568),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+    required bool isOutlined,
+  }) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon),
+      label: Text(label),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isOutlined ? Colors.white : const Color(0xFFCE181B),
+        foregroundColor: isOutlined ? const Color(0xFFCE181B) : Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: isOutlined
+              ? const BorderSide(color: Color(0xFFCE181B))
+              : BorderSide.none,
+        ),
+        elevation: isOutlined ? 0 : 2,
+      ),
+    );
+  }
+
+  Widget _buildReviewButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18, color: color),
+      label: Text(
+        label,
+        style: TextStyle(color: color),
+      ),
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 8,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
-/// Form dialog untuk menambah review baru
+// Review Form Widget
 class _ReviewForm extends StatefulWidget {
   final String initialRestaurantName;
   final String initialFoodName;
-  final String productId;  // Gunakan ID (integer->string)
+  final String productId;
   final ProductReviewService reviewService;
   final VoidCallback onReviewAdded;
 
@@ -607,8 +701,7 @@ class _ReviewForm extends StatefulWidget {
     required this.productId,
     required this.reviewService,
     required this.onReviewAdded,
-    Key? key,
-  }) : super(key: key);
+  });
 
   @override
   State<_ReviewForm> createState() => _ReviewFormState();
@@ -616,18 +709,15 @@ class _ReviewForm extends StatefulWidget {
 
 class _ReviewFormState extends State<_ReviewForm> {
   final _formKey = GlobalKey<FormState>();
-
   late TextEditingController _restaurantController;
   late TextEditingController _foodController;
   late TextEditingController _reviewController;
-
   int _rating = 0;
 
   @override
   void initState() {
     super.initState();
-    _restaurantController =
-        TextEditingController(text: widget.initialRestaurantName);
+    _restaurantController = TextEditingController(text: widget.initialRestaurantName);
     _foodController = TextEditingController(text: widget.initialFoodName);
     _reviewController = TextEditingController();
   }
@@ -647,7 +737,6 @@ class _ReviewFormState extends State<_ReviewForm> {
       final request = Provider.of<CookieRequest>(context, listen: false);
       final userId = request.jsonData['user_id'] ?? 1;
 
-      // Buat fields
       final fields = Fields(
         user: userId,
         restaurantName: _restaurantController.text,
@@ -655,12 +744,11 @@ class _ReviewFormState extends State<_ReviewForm> {
         review: _reviewController.text,
         rating: _rating,
         dateAdded: DateTime.now(),
-        // Gunakan productId (id) agar match di backend
         productIdentifier: widget.productId,
       );
 
       await widget.reviewService.addProductReview(fields);
-      widget.onReviewAdded(); // Tutup dialog + refresh data
+      widget.onReviewAdded();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -677,84 +765,111 @@ class _ReviewFormState extends State<_ReviewForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Restaurant Name
           TextFormField(
             controller: _restaurantController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Restaurant Name',
-              border: OutlineInputBorder(),
+              labelStyle: TextStyle(color: Colors.grey[700]),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFCE181B)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
             ),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Required';
-              }
-              return null;
-            },
           ),
           const SizedBox(height: 16),
-
-          // Food Name
           TextFormField(
             controller: _foodController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Food Name',
-              border: OutlineInputBorder(),
+              labelStyle: TextStyle(color: Colors.grey[700]),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFCE181B)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
             ),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Required';
-              }
-              return null;
-            },
           ),
           const SizedBox(height: 16),
-
-          // Rating (bintang)
-          const Text('Rating'),
+          const Text(
+            'Rating',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          const SizedBox(height: 8),
           Row(
             children: List.generate(5, (index) {
               return IconButton(
-                onPressed: () {
-                  setState(() => _rating = index + 1);
-                },
+                onPressed: () => setState(() => _rating = index + 1),
                 icon: Icon(
                   index < _rating ? Icons.star : Icons.star_border,
-                  color: Colors.amber,
+                  color: const Color(0xFFCE181B),
+                  size: 32,
                 ),
               );
             }),
           ),
           const SizedBox(height: 16),
-
-          // Review text
           TextFormField(
             controller: _reviewController,
-            decoration: const InputDecoration(
-              labelText: 'Review',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: 'Your Review',
+              labelStyle: TextStyle(color: Colors.grey[700]),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFCE181B)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
             ),
             maxLines: 4,
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Required';
-              }
-              return null;
-            },
           ),
           const SizedBox(height: 24),
-
-          // Tombol aksi
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               ElevatedButton(
                 onPressed: _handleSubmit,
-                child: const Text('Submit'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFCE181B),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('Submit Review'),
               ),
             ],
           ),
