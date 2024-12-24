@@ -15,7 +15,7 @@ class BrowseByCategoryPage extends StatelessWidget {
   Future<List<Recommendation>> fetchRecommendations(String category) async {
     try {
       final response = await http.get(
-        Uri.parse('http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/api/category/$category/'),
+        Uri.parse('http://localhost:8000/api/category/$category/'),
         headers: {
           'Content-Type': 'application/json',
         },

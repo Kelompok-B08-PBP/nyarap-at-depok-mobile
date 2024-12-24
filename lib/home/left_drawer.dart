@@ -273,7 +273,7 @@ class LeftDrawer extends StatelessWidget {
                       ),
                       onPressed: () async {
                         final response = await request.logout(
-                          'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/auth/logout/'
+                          'http://localhost:8000/auth/logout/'
                         );
                         String message = response["message"];
                         

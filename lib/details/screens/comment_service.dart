@@ -1,99 +1,147 @@
+// lib/details/screens/comment_service.dart
 import 'dart:convert';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import '../models/comment.dart';
 
 class CommentService {
-  final String baseProductUrl = 'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/api/products';
-  final String baseCommentUrl = 'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/api/comments';
   final CookieRequest request;
+  final String baseUrl = 'http://localhost:8000';  // Base URL as a class property
 
   CommentService(this.request);
 
-  Future<Map<String, dynamic>> fetchComments(String productIdentifier) async {
-  try {
-    final response = await request.get('$baseProductUrl/$productIdentifier/comments/');
-    if (response is Map<String, dynamic> && 
-        response.containsKey('comments') && 
-        response.containsKey('current_user')) {
-      return response;
+  Future<List<Comment>> getComments(String productId) async {
+    try {
+      final response = await request.get(
+          '$baseUrl/api/products/$productId/comments/');
+      
+      if (response is String) {
+        if (response.contains('<!DOCTYPE') || response.contains('<html>')) {
+          return [];
+        }
+        final jsonData = jsonDecode(response);
+        if (jsonData['comments'] != null) {
+          return (jsonData['comments'] as List)
+              .map((data) => Comment.fromJson(data))
+              .toList();
+        }
+      }
+
+      if (response is Map<String, dynamic> && response['comments'] != null) {
+        return (response['comments'] as List)
+            .map((data) => Comment.fromJson(data))
+            .toList();
+      }
+
+      return [];
+    } catch (e) {
+      print('Error getting comments: $e');
+      return [];
     }
-    throw Exception('Invalid response format');
-  } catch (e) {
-    if (e.toString().contains('DOCTYPE')) {
-      throw Exception('Server returned HTML instead of JSON. Please check the API endpoint.');
-    }
-    rethrow;
   }
-}
 
-Future<List<Comment>> getComments(String productIdentifier) async {
-  try {
-    final response = await request.get('$baseProductUrl/$productIdentifier/comments/');
-    if (response is Map<String, dynamic> && response.containsKey('comments')) {
-      final commentsData = response['comments'] as List;
-      return commentsData.map((data) => Comment.fromJson(data)).toList();
+  Future<String?> getCurrentUser(String productId) async {
+    try {
+      final response = await request.get(
+          '$baseUrl/api/products/$productId/comments/');
+      
+      if (response is String) {
+        if (response.contains('<!DOCTYPE') || response.contains('<html>')) {
+          return null;
+        }
+        try {
+          final jsonData = jsonDecode(response);
+          return jsonData['current_user']?.toString();
+        } catch (e) {
+          print('Error parsing user data: $e');
+          return null;
+        }
+      }
+
+      if (response is Map<String, dynamic>) {
+        return response['current_user']?.toString();
+      }
+
+      return null;
+    } catch (e) {
+      print('Error getting current user: $e');
+      return null;
     }
-    throw Exception('Invalid response format');
-  } catch (e) {
-    if (e.toString().contains('DOCTYPE')) {
-      throw Exception('Server returned HTML instead of JSON. Please check the API endpoint.');
-    }
-    rethrow;
   }
-}
 
-Future<Comment> addComment(String productIdentifier, String content) async {
-  try {
-    if (!request.loggedIn) throw Exception('You must be logged in to add a comment');
-    
-    final response = await request.post(
-      '$baseProductUrl/$productIdentifier/comments/add/',
-      jsonEncode({'content': content}),
-    );
-    
-    if (response is Map<String, dynamic> && response.containsKey('id')) {
-      return Comment.fromJson(response);
+  Future<bool> addComment(String productId, String content) async {
+    if (!request.loggedIn) {
+      throw Exception('Please log in to add a comment');
     }
-    throw Exception('Invalid response format');
-  } catch (e) {
-    if (e.toString().contains('DOCTYPE')) {
-      throw Exception('Server returned HTML instead of JSON. Please check the API endpoint.');
+
+    try {
+      final response = await request.post(
+        '$baseUrl/api/products/$productId/comments/add/',
+        jsonEncode({
+          'content': content,
+        }),
+      );
+
+      if (response is String) {
+        if (response.contains('<!DOCTYPE') || response.contains('<html>')) {
+          return false;
+        }
+        final jsonData = jsonDecode(response);
+        return jsonData['id'] != null;
+      }
+
+      if (response is Map<String, dynamic>) {
+        return response['id'] != null;
+      }
+
+      return false;
+    } catch (e) {
+      print('Error adding comment: $e');
+      rethrow;
     }
-    rethrow;
   }
-}
 
-Future<void> editComment(int commentId, String content) async {
-  final response = await request.post(
-    '$baseCommentUrl/$commentId/edit/',
-    jsonEncode({'content': content}),
-  );
+  Future<bool> editComment(int commentId, String content) async {
+    try {
+      final response = await request.post(
+        '$baseUrl/api/comments/$commentId/edit/',
+        jsonEncode({'content': content}),
+      );
 
-  if (response is Map<String, dynamic> && response.containsKey('id')) {
-    // Komentar berhasil diupdate
-    return;
-  } else if (response is Map<String, dynamic> && response.containsKey('error')) {
-    throw Exception(response['error']);
-  } else {
-    throw Exception('Unexpected response format');
-  }
-}
+      if (response is String) {
+        if (response.contains('<!DOCTYPE') || response.contains('<html>')) {
+          return false;
+        }
+        final jsonData = jsonDecode(response);
+        return jsonData['id'] != null;
+      }
 
-
-Future<void> deleteComment(int commentId) async {
-  final response = await request.post(
-    '$baseCommentUrl/$commentId/delete/',
-    {}, // Body kosong
-  );
-
-  if (response is Map<String, dynamic> && response.containsKey('message')) {
-    if (response['message'] == 'Comment deleted successfully') {
-      return; // Berhasil dihapus
+      return response is Map<String, dynamic> && response['id'] != null;
+    } catch (e) {
+      print('Error editing comment: $e');
+      rethrow;
     }
-  } else if (response is Map<String, dynamic> && response.containsKey('error')) {
-    throw Exception(response['error']);
-  } else {
-    throw Exception('Unexpected response format: $response');
   }
-}
+
+  Future<bool> deleteComment(int commentId) async {
+    try {
+      final response = await request.post(
+        '$baseUrl/api/comments/$commentId/delete/',
+        {},
+      );
+
+      if (response is String) {
+        if (response.contains('<!DOCTYPE') || response.contains('<html>')) {
+          return false;
+        }
+        final jsonData = jsonDecode(response);
+        return jsonData['message'] == 'Comment deleted successfully';
+      }
+
+      return response is Map<String, dynamic> && 
+             response['message'] == 'Comment deleted successfully';
+    } catch (e) {
+      print('Error deleting comment: $e');
+      rethrow;
+    }
+  }
 }

@@ -91,7 +91,7 @@ class _EditPostFormState extends State<EditPostForm> {
                               final request = context.read<CookieRequest>();
                               try {
                                 final response = await request.post(
-                                  'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/discovery/update-flutter/${widget.post.pk}/',
+                                  'http://localhost:8000/discovery/update-flutter/${widget.post.pk}/',
                                   {
                                     'title': _titleController.text,
                                     'caption': _captionController.text,

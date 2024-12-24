@@ -40,7 +40,7 @@ class _CommunityPageState extends State<CommunityPage> {
   try {
     final request = context.read<CookieRequest>();
     final response = await request.get(
-      'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/discovery/get_posts_flutter/'
+      'http://localhost:8000/discovery/get_posts_flutter/'
     );
 
     if (response != null && response['status'] == 'success') {
@@ -81,7 +81,7 @@ class _CommunityPageState extends State<CommunityPage> {
     final request = context.read<CookieRequest>();
     try {
       final response = await request.post(
-        'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/discovery/delete-flutter/$postId/',
+        'http://localhost:8000/discovery/delete-flutter/$postId/',
         {}
       );
 

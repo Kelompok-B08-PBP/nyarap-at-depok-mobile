@@ -5,7 +5,7 @@ import 'package:nyarap_at_depok_mobile/reviews/models/reviews.dart';
 
 class ProductReviewService {
   // Ubah sesuai URL deployment Anda
-  final String baseUrl = 'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/review'; 
+  final String baseUrl = 'http://localhost:8000/review'; 
   final CookieRequest request;
 
   ProductReviewService(this.request);

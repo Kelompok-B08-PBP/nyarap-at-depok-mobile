@@ -107,7 +107,7 @@ class _CreatePostEntryState extends State<CreatePostEntry> {
 
                                     try {
                                       final response = await request.postJson(
-                                        "http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/discovery/create-flutter/",
+                                        "http://localhost:8000/discovery/create-flutter/",
                                         jsonEncode({
                                           'title': _titleController.text,
                                           'caption': _captionController.text,

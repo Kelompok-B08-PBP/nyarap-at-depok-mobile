@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 
 class WishlistService {
-  static const String baseUrl = "http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id";
+  static const String baseUrl = "http://localhost:8000";
 
   static Future<bool> addToWishlist(BuildContext context, Map<String, dynamic> product) async {
   final request = Provider.of<CookieRequest>(context, listen: false);

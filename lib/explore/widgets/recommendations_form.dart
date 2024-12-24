@@ -111,7 +111,7 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
     try {
       final request = context.read<CookieRequest>();
       final response =
-          await request.get('http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/get_user_data/');
+          await request.get('http://localhost:8000/get_user_data/');
 
       if (response['status'] == 'success' &&
           response['data']['preferences'] != null) {
@@ -151,7 +151,7 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
         final request = context.read<CookieRequest>();
         try {
           final response = await request.post(
-            'http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/api/preferences/save/',
+            'http://localhost:8000/api/preferences/save/',
             {
               'breakfast_category': _selectedBreakfast,
               'district_category':
@@ -173,7 +173,7 @@ class _RecommendationsFormState extends State<RecommendationsForm> {
       }
       
       
-      final url = Uri.parse('http://valiza-nadya-nyarapatdepok.pbp.cs.ui.ac.id/api/recommendations/');
+      final url = Uri.parse('http://localhost:8000/api/recommendations/');
       final requestBody = jsonEncode({
         'breakfast_type': _selectedBreakfast,
         'location': _selectedDistrict?.toLowerCase(),
